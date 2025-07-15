@@ -6,7 +6,7 @@ public class DeviceManager : IDisposable
     private readonly Dictionary<SerialPortIndex, RAVDevice> _devices = new();
     private readonly ProtocolIdentifier _defaultProtocol = ProtocolIdentifier.MEI;
     private readonly SerialPortIndex _defaultPort = SerialPortIndex.SerialPort4;
-    static bool pollOn = false;
+    static bool pollOn = true;
     static bool loopExtended = false;
     static bool measureTime = false;
 

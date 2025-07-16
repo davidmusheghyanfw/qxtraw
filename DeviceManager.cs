@@ -73,7 +73,7 @@ public class DeviceManager : IDisposable
         setBar.InputBuffer[0] = 0x01;
         setPup.InputBuffer[0] = 0x00;
         setPup.InputBuffer[1] = 0x00;
-        setCpn.InputBuffer[0] = 0x00;
+        setCpn.InputBuffer[0] = 0x01;
 
         try
         {

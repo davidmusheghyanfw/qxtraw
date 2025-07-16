@@ -9,7 +9,7 @@ namespace CCnetWPF.Events
 {
     public class BillCassetteEventArgs
     {
-        
+
         public static CasetteStatus BillCassetteStatus { get; set; }
         public CasetteStatus Status { get; set; }
 

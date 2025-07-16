@@ -32,10 +32,8 @@ class Program
     static async Task Main(string[] args)
     {
         var server = new TcpServer(5000);
-        var deviceManager = new DeviceManager();
 
         Console.WriteLine("Starting device...");
-        deviceManager.StartAllDevices();
         Console.WriteLine("\nDeviceManager Interactive Console");
         Console.WriteLine("==================================");
         Console.WriteLine("Commands:");
@@ -46,9 +44,18 @@ class Program
         Console.WriteLine("  [5] Stack bill extension");
         Console.WriteLine("  [6] Exit");
         Console.WriteLine();
+        var deviceManager = new DeviceManager();
 
-        // Start input thread for controlling the device
+        var deviceThread = new Thread(() =>
+               {
+                   deviceManager.StartAllDevices();
+
+               });
+
+        deviceThread.Start();
+
         var inputThread = new Thread(() => InputLoop(deviceManager));
+
         inputThread.Start();
 
         Console.WriteLine("✅ Server started. Waiting for Unity client...");
@@ -58,8 +65,9 @@ class Program
 
         Console.WriteLine("🎮 Unity client connected!");
 
-        // Wait for input thread to finish
         inputThread.Join();
+        exitRequested = true;
+        deviceThread.Join();
     }
 
     private static void InputLoop(DeviceManager manager)

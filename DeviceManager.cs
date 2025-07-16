@@ -55,7 +55,7 @@ public class DeviceManager : IDisposable
         MEICommand stdHostToAcc = new MEICommand(MEIInstruction.StdHostToAcc, 0, 128);
         MEICommand setDenom = new MEICommand(MEIInstruction.SetDenomination, 1, 0);
         MEICommand setInt = new MEICommand(MEIInstruction.SetSpecialInterruptMode, 1, 0);
-        MEICommand setSec = new MEICommand(MEIInstruction.SetSecurity, 1, 0);
+        // MEICommand setSec = new MEICommand(MEIInstruction.SetSecurity, 1, 0);
         MEICommand setOri = new MEICommand(MEIInstruction.SetOrientation, 2, 0);
         MEICommand setEscrow = new MEICommand(MEIInstruction.SetEscrowMode, 1, 0);
         MEICommand setPush = new MEICommand(MEIInstruction.SetPushMode, 1, 0);
@@ -65,7 +65,7 @@ public class DeviceManager : IDisposable
         MEICommand setCpn = new MEICommand(MEIInstruction.SetExtendedCouponReporting, 1, 0);
         setDenom.InputBuffer[0] = 0x7f;
         setInt.InputBuffer[0] = 0x00;
-        setSec.InputBuffer[0] = 0x00;
+        // setSec.InputBuffer[0] = 0x00;
         setOri.InputBuffer[0] = 0x03;
         setOri.InputBuffer[1] = 0x00;
         setEscrow.InputBuffer[0] = 0x01;
@@ -126,15 +126,15 @@ public class DeviceManager : IDisposable
             return;
         }
 
-        try
-        {
-            device.Set(setSec);
-        }
-        catch (Exception exc)
-        {
-            Console.WriteLine("DeviceManager initMEI() Set security failed: " + exc.Message);
-            return;
-        }
+        // try
+        // {
+        //     device.Set(setSec);
+        // }
+        // catch (Exception exc)
+        // {
+        //     Console.WriteLine("DeviceManager initMEI() Set security failed: " + exc.Message);
+        //     return;
+        // }
 
         try
         {
@@ -211,6 +211,7 @@ public class DeviceManager : IDisposable
                         for (int i = 0; i < 8; i++)
                             setExtendedNote.InputBuffer[i] = 0xFF;
                         device.Set(setExtendedNote);
+                        device.Set(setExtendedNote);
 
                         break;
                     }
@@ -280,15 +281,15 @@ public class DeviceManager : IDisposable
             // Standard host to acceptor poll. When using input length 0 the library fills in the
             // data with the current configuration
             outLen = device.Get(stdHostToAcc);
-            byte statusByte = stdHostToAcc.OutputBuffer[1];
-            if (statusByte == 0x04)
+            uint status = BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1);
+            Console.WriteLine($"Polling status: 0x{status:X8} ({(MeiStatus)status})");
+
+            Console.Write("Status bytes: ");
+            for (int i = 1; i <= 4; i++)
             {
-                Console.WriteLine("Device is ready (Idling).");
+                Console.Write($"0x{stdHostToAcc.OutputBuffer[i]:X2} ");
             }
-            else
-            {
-                Console.WriteLine($"Waiting... Status: 0x{statusByte:X2}");
-            }
+            Console.WriteLine();
             /*
              (((MeiStatus)BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1)) & MeiStatus.Escrowed)
              */
@@ -308,7 +309,7 @@ public class DeviceManager : IDisposable
                 Console.WriteLine("Devicemanager MeiPoll() Received status: 0x{0:X8}", stdHostToAcc.OutputBuffer[1]);
             }
 
-            Thread.Sleep(200);
+            Thread.Sleep(50);
         }
 
         Console.WriteLine("Devicemanager MeiPoll() exited polling loop.");

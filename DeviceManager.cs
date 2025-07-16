@@ -41,7 +41,6 @@ public class DeviceManager : IDisposable
             Console.WriteLine($"DeviceManager InitDevice() Device on port {port.Name} initialized.");
 
             _initMEI(this.currentDevice, MEIInstruction.InitExtCfscAndPoll);
-            StartPolling();
         }
         catch (Exception ex)
         {
@@ -51,6 +50,7 @@ public class DeviceManager : IDisposable
 
     private void _initMEI(RAVDevice device, MEIInstruction instruction)
     {
+        uint outLen = 0;
         MEICommand reset = new MEICommand(MEIInstruction.SoftReset, 0, 0);
         MEICommand stdHostToAcc = new MEICommand(MEIInstruction.StdHostToAcc, 0, 128);
         MEICommand setDenom = new MEICommand(MEIInstruction.SetDenomination, 1, 0);
@@ -86,7 +86,7 @@ public class DeviceManager : IDisposable
             {
                 try
                 {
-                    device.Get(stdHostToAcc);
+                    outLen = device.Get(stdHostToAcc);
                     Console.WriteLine("DeviceManager initMEI() Initialization done");
                     break;
                 }
@@ -212,22 +212,6 @@ public class DeviceManager : IDisposable
                         for (int i = 0; i < 8; i++)
                             setExtendedNote.InputBuffer[i] = 0xFF;
                         device.Set(setExtendedNote);
-                        // Assuming device is your RAVDevice
-                        for (byte denomIndex = 1; denomIndex <= 50; denomIndex++)
-                        {
-                            var denom = device.GetDenomination(denomIndex);
-                            if (denom != null)
-                            {
-                                Console.WriteLine($"Denomination {denomIndex}: Type={denom.Type}, Status={denom.Status}");
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Denomination {denomIndex}: ERROR (null)");
-                            }
-                        }
-
-
-
                         break;
                     }
                 case MEIInstruction.InitExtScaScrAndPoll:   // Extended Note SC Adv SCR - 19 bytes of denomination
@@ -264,6 +248,7 @@ public class DeviceManager : IDisposable
         }
 
         Console.Write("DeviceManager initMEI() Test executed successfully\n");
+        MeiPoll(this.currentDevice, stdHostToAcc, outLen);
     }
 
 
@@ -278,24 +263,21 @@ public class DeviceManager : IDisposable
     {
         pollOn = true;
         Console.WriteLine("DeviceManager StartPolling() Pollinenabled.");
-        MeiPoll(this.currentDevice);
+        // MeiPoll(this.currentDevice);
     }
 
-    private void MeiPoll(RAVDevice device)
+    private void MeiPoll(RAVDevice device, MEICommand stdHostToAcc, uint outLen)
     {
-        uint outLen = 0;
         byte[] buffer = new byte[128];
         if (pollOn)
             Console.WriteLine("Devicemanager MeiPoll() Start task (E7 command) send polling to Note Acceptor \n");
-
-        MEICommand stdHostToAcc = new MEICommand(MEIInstruction.StdHostToAcc, 0, 128);
 
         // Poll the device each 200 ms 
         while (pollOn)
         {
             // Standard host to acceptor poll. When using input length 0 the library fills in the
             // data with the current configuration
-            outLen = device.Get(stdHostToAcc);
+            // outLen = device.Get(stdHostToAcc);
             uint status = BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1);
             Console.WriteLine($"Polling status: 0x{status:X8} ({(MeiStatus)status})");
 

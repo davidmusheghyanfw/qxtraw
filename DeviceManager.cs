@@ -271,7 +271,7 @@ public class DeviceManager : IDisposable
         {
             // Standard host to acceptor poll. When using input length 0 the library fills in the
             // data with the current configuration
-            outLen = device.Get(stdHostToAcc);
+            outLen = stdHostToAcc.RunOn(device); //device.Get(stdHostToAcc);
 
             /*
              (((MeiStatus)BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1)) & MeiStatus.Escrowed)

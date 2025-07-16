@@ -209,7 +209,7 @@ public class DeviceManager : IDisposable
                             (MEIMessageExtendedSubtype.SetExtendedNoteInhibits, 8);
 
                         for (int i = 0; i < 8; i++)
-                            setExtendedNote.InputBuffer[i] = 0x7f;
+                            setExtendedNote.InputBuffer[i] = 0xFF;
                         device.Set(setExtendedNote);
 
                         break;
@@ -284,7 +284,6 @@ public class DeviceManager : IDisposable
             if (statusByte == 0x04)
             {
                 Console.WriteLine("Device is ready (Idling).");
-                break;
             }
             else
             {

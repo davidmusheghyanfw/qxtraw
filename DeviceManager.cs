@@ -90,9 +90,9 @@ public class DeviceManager : IDisposable
                     Console.WriteLine("DeviceManager initMEI() Initialization done");
                     break;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    Console.WriteLine("DeviceManager initMEI() initWait.");
+                    Console.WriteLine($"DeviceManager initMEI() initWait. {ex.Message}");
                     initWait++;
                     Thread.Sleep(200);
                 }

@@ -94,7 +94,7 @@ public class DeviceManager : IDisposable
                 {
                     Console.WriteLine($"DeviceManager initMEI() initWait. {ex.Message}");
                     initWait++;
-                    Thread.Sleep(200);
+                    Thread.Sleep(50);
                 }
             }
         }
@@ -285,10 +285,16 @@ public class DeviceManager : IDisposable
             try
             {
                 outLen = stdHostToAcc.RunOn(device);
+                byte subtype = stdHostToAcc.OutputBuffer[1];
 
+                Console.WriteLine($"TOP Extended message subtype: 0x{subtype:X2}");
                 // Check whether the received response is a standard Acceptor to Host message
                 if ((stdHostToAcc.OutputBuffer[0] & 0xF0) == (int)MEIInstruction.StdAccToHost)
                 {
+                    subtype = stdHostToAcc.OutputBuffer[1];
+
+                    Console.WriteLine($"StdAccToHost message subtype: 0x{subtype:X2}");
+
                     // In this case, the status data bytes are retrieved from the second index in the array
                     if (outLen >= 5 && (((MeiStatus)BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1)) & MeiStatus.Escrowed) == Quixant.LibRAV.MeiStatus.Escrowed)
                     {
@@ -296,7 +302,6 @@ public class DeviceManager : IDisposable
                         int denomination = (stdHostToAcc.OutputBuffer[3] & 0x38) >> 3; // Bits 3-5 represent the denomination
                         Console.WriteLine("Denomination: " + denomination);
                         Console.WriteLine("Sending stack command...");
-                        Thread.Sleep(1000);
                     }
                     else if (outLen >= 5 && BitConverter.ToUInt16(stdHostToAcc.OutputBuffer, 1) != 0x1001)
                     {
@@ -306,6 +311,10 @@ public class DeviceManager : IDisposable
                 }
                 else if ((stdHostToAcc.OutputBuffer[0] & 0xF0) == (int)MEIInstruction.ExtendedMsgSet)
                 {
+                    subtype = stdHostToAcc.OutputBuffer[1];
+
+                    Console.WriteLine($"ExtendedMsgSet message subtype: 0x{subtype:X2}");
+
                     // Switch the extended command subtype
                     switch (stdHostToAcc.OutputBuffer[1])
                     {
@@ -335,7 +344,7 @@ public class DeviceManager : IDisposable
             {
                 Console.WriteLine("\nGet error: " + exc.Message);
             }
-            Thread.Sleep(200);
+            Thread.Sleep(50);
         }
         return;
         // Poll the device each 200 ms 

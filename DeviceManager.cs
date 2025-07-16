@@ -207,6 +207,9 @@ public class DeviceManager : IDisposable
                         //Enable all the Bank Note
                         MEIExtendedCommand setExtendedNote = new MEIExtendedCommand
                             (MEIMessageExtendedSubtype.SetExtendedNoteInhibits, 8);
+
+                        for (int i = 0; i < 8; i++)
+                            setExtendedNote.InputBuffer[i] = 0x7f;
                         device.Set(setExtendedNote);
 
                         break;

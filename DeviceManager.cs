@@ -103,6 +103,8 @@ public class DeviceManager : IDisposable
             Console.WriteLine("DeviceManager initMEI() Operation failed: " + exc.Message);
             return;
         }
+        Stopwatch sw = null;
+        sw = Stopwatch.StartNew();
 
         try
         {
@@ -183,6 +185,8 @@ public class DeviceManager : IDisposable
             Console.WriteLine("DeviceManager initMEI() Set powerup failed: " + exc.Message);
             return;
         }
+        sw.Stop();
+        printTime(sw.ElapsedTicks, 1);
         try
         {
             switch (instruction)
@@ -273,7 +277,16 @@ public class DeviceManager : IDisposable
             // Standard host to acceptor poll. When using input length 0 the library fills in the
             // data with the current configuration
             outLen = device.Get(stdHostToAcc);
-
+            byte statusByte = stdHostToAcc.OutputBuffer[1];
+            if (statusByte == 0x04)
+            {
+                Console.WriteLine("Device is ready (Idling).");
+                break;
+            }
+            else
+            {
+                Console.WriteLine($"Waiting... Status: 0x{statusByte:X2}");
+            }
             /*
              (((MeiStatus)BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1)) & MeiStatus.Escrowed)
              */
@@ -342,7 +355,32 @@ public class DeviceManager : IDisposable
             Console.WriteLine($"DeviceManager ClosePort() ❌ Error closing device: {ex.Message}");
         }
     }
+    private static void printTime(long ticks, int repetitions)
+    {
+        double seconds = ((double)ticks) / ((double)Stopwatch.Frequency);
+        double avg = seconds / repetitions;
 
+        Console.Write("\n----------------  Results  ----------------\n\n");
+        Console.Write("Total execution time: ");
+
+        if (seconds > 1)
+            Console.WriteLine("{0:f4}s", seconds);
+        else if (seconds * 1000 > 1)
+            Console.WriteLine("{0:f4}ms", seconds * 1000);
+        else
+            Console.WriteLine("{0:f4}us", seconds * 1000 * 1000);
+
+        Console.Write("Average cycle execution time: ");
+
+        if (avg > 1)
+            Console.WriteLine("{0:f4}s", avg);
+        else if (avg * 1000 > 1)
+            Console.WriteLine("{0:f4}ms", avg * 1000);
+        else
+            Console.WriteLine("{0:f4}us", avg * 1000 * 1000);
+
+        Console.Write("\n----------------  End of results  ----------------\n");
+    }
     public void Dispose()
     {
         ClosePort(_defaultPort);

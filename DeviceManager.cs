@@ -40,8 +40,8 @@ public class DeviceManager : IDisposable
             this.currentDevice.Open(port.Name);
             Console.WriteLine($"DeviceManager InitDevice() Device on port {port.Name} initialized.");
 
-            _initMEI(this.currentDevice, MEIInstruction.InitAndPoll);
-            StartPolling();
+            _initMEI(this.currentDevice, MEIInstruction.InitExtScaScrAndPoll);
+            // StartPolling();
         }
         catch (Exception ex)
         {
@@ -183,53 +183,53 @@ public class DeviceManager : IDisposable
             Console.WriteLine("DeviceManager initMEI() Set powerup failed: " + exc.Message);
             return;
         }
-        // try
-        // {
-        //     switch (instruction)
-        //     {
-        //         case MEIInstruction.InitAndPoll:   // Normal mode
-        //             {
-        //                 // Enable extended note reporting
-        //                 setNote.InputBuffer[0] = 0x00;
-        //                 setNote.RunOn(device);
-        //                 break;
-        //             }
-        //         case MEIInstruction.InitExtCfscAndPoll:   // Extended Note CFSC - 8 bytes of denomination
-        //             {
-        //                 // Enable extended note reporting 
-        //                 setNote.InputBuffer[0] = 0x01;
-        //                 setNote.RunOn(device);
+        try
+        {
+            switch (instruction)
+            {
+                case MEIInstruction.InitAndPoll:   // Normal mode
+                    {
+                        // Enable extended note reporting
+                        setNote.InputBuffer[0] = 0x00;
+                        setNote.RunOn(device);
+                        break;
+                    }
+                case MEIInstruction.InitExtCfscAndPoll:   // Extended Note CFSC - 8 bytes of denomination
+                    {
+                        // Enable extended note reporting 
+                        setNote.InputBuffer[0] = 0x01;
+                        setNote.RunOn(device);
 
-        //                 //Enable all the Bank Note
-        //                 MEIExtendedCommand setExtendedNote = new MEIExtendedCommand
-        //                     (MEIMessageExtendedSubtype.SetExtendedNoteInhibits, 8);
-        //                 device.Set(setExtendedNote);
+                        //Enable all the Bank Note
+                        MEIExtendedCommand setExtendedNote = new MEIExtendedCommand
+                            (MEIMessageExtendedSubtype.SetExtendedNoteInhibits, 8);
+                        device.Set(setExtendedNote);
 
-        //                 break;
-        //             }
-        //         case MEIInstruction.InitExtScaScrAndPoll:   // Extended Note SC Adv SCR - 19 bytes of denomination
-        //             {
-        //                 // Enable extended note reporting
-        //                 setNote.InputBuffer[0] = 0x02;
-        //                 setNote.RunOn(device);
+                        break;
+                    }
+                case MEIInstruction.InitExtScaScrAndPoll:   // Extended Note SC Adv SCR - 19 bytes of denomination
+                    {
+                        // Enable extended note reporting
+                        setNote.InputBuffer[0] = 0x02;
+                        setNote.RunOn(device);
 
-        //                 //Enable all the Bank Note
-        //                 MEIExtendedCommand setExtendedNote = new MEIExtendedCommand
-        //                     (MEIMessageExtendedSubtype.SetExtendedNoteInhibits, 8);
-        //                 device.Set(setExtendedNote);
+                        //Enable all the Bank Note
+                        MEIExtendedCommand setExtendedNote = new MEIExtendedCommand
+                            (MEIMessageExtendedSubtype.SetExtendedNoteInhibits, 8);
+                        device.Set(setExtendedNote);
 
-        //                 break;
-        //             }
+                        break;
+                    }
 
-        //         default:
-        //             break;
-        //     }
-        // }
-        // catch (Exception exc)
-        // {
-        //     Console.WriteLine("DeviceManager initMEI() Init and Poll failed: " + exc.Message);
-        //     return;
-        // }
+                default:
+                    break;
+            }
+        }
+        catch (Exception exc)
+        {
+            Console.WriteLine("DeviceManager initMEI() Init and Poll failed: " + exc.Message);
+            return;
+        }
         try
         {
             setCpn.RunOn(device);

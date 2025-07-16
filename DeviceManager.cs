@@ -41,6 +41,7 @@ public class DeviceManager : IDisposable
             Console.WriteLine($"DeviceManager InitDevice() Device on port {port.Name} initialized.");
 
             _initMEI(this.currentDevice, MEIInstruction.InitAndPoll);
+            StartPolling();
         }
         catch (Exception ex)
         {

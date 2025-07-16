@@ -290,6 +290,17 @@ public class DeviceManager : IDisposable
                 Console.Write($"0x{stdHostToAcc.OutputBuffer[i]:X2} ");
             }
             Console.WriteLine();
+
+            if (stdHostToAcc.OutputBuffer[0] == (byte)MEIInstruction.ExtendedMsgSet)
+            {
+                byte subtype = stdHostToAcc.OutputBuffer[1];
+                if (subtype == (byte)MEIMessageExtendedSubtype.ExtendedBarcodeReply)
+                {
+                    byte denomId = stdHostToAcc.OutputBuffer[8];
+                    Console.WriteLine($"Detected Denomination ID: {denomId}");
+                }
+            }
+
             /*
              (((MeiStatus)BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1)) & MeiStatus.Escrowed)
              */

@@ -80,7 +80,7 @@ public class DeviceManager : IDisposable
             int initWait = 0;
 
             device.Execute(reset);
-            Console.Write("DeviceManager initMEI() Waiting for the device to initialize...");
+            Console.WriteLine("DeviceManager initMEI() Waiting for the device to initialize...");
 
             while (initWait < 30)
             {
@@ -92,7 +92,7 @@ public class DeviceManager : IDisposable
                 }
                 catch (Exception)
                 {
-                    Console.Write("DeviceManager initMEI() initWait.");
+                    Console.WriteLine("DeviceManager initMEI() initWait.");
                     initWait++;
                     Thread.Sleep(200);
                 }

@@ -65,9 +65,6 @@ class Program
 
         Console.WriteLine("🎮 Unity client connected!");
 
-        inputThread.Join();
-        exitRequested = true;
-        deviceThread.Join();
     }
 
     private static void InputLoop(DeviceManager manager)

@@ -196,6 +196,7 @@ public class DeviceManager : IDisposable
                         // Enable extended note reporting
                         setNote.InputBuffer[0] = 0x00;
                         setNote.RunOn(device);
+
                         break;
                     }
                 case MEIInstruction.InitExtCfscAndPoll:   // Extended Note CFSC - 8 bytes of denomination
@@ -211,7 +212,21 @@ public class DeviceManager : IDisposable
                         for (int i = 0; i < 8; i++)
                             setExtendedNote.InputBuffer[i] = 0xFF;
                         device.Set(setExtendedNote);
-                        device.Set(setExtendedNote);
+                        // Assuming device is your RAVDevice
+                        for (byte denomIndex = 1; denomIndex <= 50; denomIndex++)
+                        {
+                            var denom = device.GetDenomination(denomIndex);
+                            if (denom != null)
+                            {
+                                Console.WriteLine($"Denomination {denomIndex}: Type={denom.Type}, Status={denom.Status}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Denomination {denomIndex}: ERROR (null)");
+                            }
+                        }
+
+
 
                         break;
                     }

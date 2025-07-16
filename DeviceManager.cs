@@ -40,7 +40,7 @@ public class DeviceManager : IDisposable
             this.currentDevice.Open(port.Name);
             Console.WriteLine($"DeviceManager InitDevice() Device on port {port.Name} initialized.");
 
-            _initMEI(this.currentDevice, MEIInstruction.InitExtScaScrAndPoll);
+            _initMEI(this.currentDevice, MEIInstruction.InitExtCfscAndPoll);
             StartPolling();
         }
         catch (Exception ex)
@@ -63,7 +63,7 @@ public class DeviceManager : IDisposable
         MEICommand setPup = new MEICommand(MEIInstruction.SetPowerup, 2, 0);
         MEICommand setNote = new MEICommand(MEIInstruction.SetExtendedNoteReporting, 1, 0);
         MEICommand setCpn = new MEICommand(MEIInstruction.SetExtendedCouponReporting, 1, 0);
-        setDenom.InputBuffer[0] = 0xFF;//0x7f;
+        setDenom.InputBuffer[0] = 0x7f;
         setInt.InputBuffer[0] = 0x00;
         setSec.InputBuffer[0] = 0x00;
         setOri.InputBuffer[0] = 0x03;

@@ -31,40 +31,39 @@ class Program
 
     static async Task Main(string[] args)
     {
-        var meipost = new Mpost();
         // var server = new TcpServer(5000);
 
-        // Console.WriteLine("Starting device...");
-        // Console.WriteLine("\nDeviceManager Interactive Console");
-        // Console.WriteLine("==================================");
-        // Console.WriteLine("Commands:");
-        // Console.WriteLine("  [1] Start poll");
-        // Console.WriteLine("  [2] Stop poll");
-        // Console.WriteLine("  [3] Return bill");
-        // Console.WriteLine("  [4] Stack bill (TEST)");
-        // Console.WriteLine("  [5] Stack bill extension");
-        // Console.WriteLine("  [6] Exit");
-        // Console.WriteLine();
-        // var deviceManager = new DeviceManager();
+        Console.WriteLine("Starting device...");
+        Console.WriteLine("\nDeviceManager Interactive Console");
+        Console.WriteLine("==================================");
+        Console.WriteLine("Commands:");
+        Console.WriteLine("  [1] Start poll");
+        Console.WriteLine("  [2] Stop poll");
+        Console.WriteLine("  [3] Return bill");
+        Console.WriteLine("  [4] Stack bill (TEST)");
+        Console.WriteLine("  [5] Stack bill extension");
+        Console.WriteLine("  [6] Exit");
+        Console.WriteLine();
+        var deviceManager = new DeviceManager();
 
-        // var deviceThread = new Thread(() =>
-        //        {
-        //            deviceManager.StartAllDevices();
+        var deviceThread = new Thread(() =>
+               {
+                   deviceManager.StartAllDevices();
 
-        //        });
+               });
 
-        // deviceThread.Start();
+        deviceThread.Start();
 
-        // var inputThread = new Thread(() => InputLoop(deviceManager));
+        var inputThread = new Thread(() => InputLoop(deviceManager));
 
-        // inputThread.Start();
+        inputThread.Start();
 
-        // Console.WriteLine("✅ Server started. Waiting for Unity client...");
+        Console.WriteLine("✅ Server started. Waiting for Unity client...");
 
-        // // Wait for Unity connection
+        // Wait for Unity connection
         // await server.WaitForClientAsync();
 
-        // Console.WriteLine("🎮 Unity client connected!");
+        Console.WriteLine("🎮 Unity client connected!");
 
     }
 

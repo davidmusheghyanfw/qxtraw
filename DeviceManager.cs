@@ -285,7 +285,7 @@ public class DeviceManager : IDisposable
         {
             // Standard host to acceptor poll. When using input length 0 the library fills in the
             // data with the current configuration
-            // outLen = device.Get(stdHostToAcc);
+            outLen = device.Get(stdHostToAcc);
             uint status = BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1);
             Console.WriteLine($"Polling status: 0x{status:X8} ({(MeiStatus)status})");
 
@@ -325,29 +325,29 @@ public class DeviceManager : IDisposable
                 Console.WriteLine("Devicemanager MeiPoll() Received status: 0x{0:X8}", stdHostToAcc.OutputBuffer[1]);
             }
 
-            Thread.Sleep(50);
+            Thread.Sleep(200);
         }
 
         Console.WriteLine("Devicemanager MeiPoll() exited polling loop.");
     }
+
     public void ReturnBill()
     {
         Console.WriteLine("DeviceManager ReturnBill() Bill return.");
-
-        this.currentDevice.ExecuteWithMenuOption(MenuOption.Return);
+        this.currentDevice.ExecuteWithMenuOption(MenuOption.MEI_Return);
     }
 
     public void StackBill()
     {
         Console.WriteLine("DeviceManager StackBill() ");
-        Thread.Sleep(1000);
+        // Thread.Sleep(1000);
         this.currentDevice.ExecuteWithMenuOption(MenuOption.MEI_Stack);
     }
 
     public void StackBillTEST()
     {
         Console.WriteLine("DeviceManager StackBillTEST()");
-        Thread.Sleep(1000);
+        // Thread.Sleep(1000);
         MEICommand stack = new MEICommand(MEIInstruction.Stack, 0, 0);
         stack.RunOn(this.currentDevice);
     }

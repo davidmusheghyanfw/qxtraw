@@ -1,55 +1,49 @@
 using System.Diagnostics;
 using Quixant.LibRAV;
 
-public class DeviceManager : IDisposable
+public class MEIDeviceAdapter : IDeviceAdapter
 {
-    private readonly Dictionary<SerialPortIndex, RAVDevice> _devices = new();
-    private readonly ProtocolIdentifier _defaultProtocol = ProtocolIdentifier.MEI;
-    private readonly SerialPortIndex _defaultPort = SerialPortIndex.SerialPort4;
-    bool pollOn = true;
-    RAVDevice currentDevice;
+    private readonly RAVDevice _device;
 
-    public DeviceManager()
+    public MEIDeviceAdapter(SerialPortIndex port)
     {
-        _devices.Add(_defaultPort,
-                  new RAVDevice(_defaultPort, _defaultProtocol));
+        _device = new RAVDevice(port, ProtocolIdentifier.MEI);
+        _port = port;
     }
 
-    public void StartAllDevices()
-    {
-        foreach (var kvp in _devices)
-        {
-            _initDevice(kvp.Key);
-        }
-    }
 
-    private void _initDevice(SerialPortIndex port)
+    public bool IsOpen => _device.IsOpen;
+
+    public bool IsPolling => true;
+
+
+    private SerialPortIndex _port;
+    public SerialPortIndex port { get => _port; set => _port = value; }
+    bool IDeviceAdapter.IsPolling { get => IsPolling; set => throw new NotImplementedException(); }
+
+    public void Open()
     {
-        this.currentDevice = _devices[port];
-        if (this.currentDevice.IsOpen)
+        if (_device.IsOpen)
         {
-            Console.WriteLine($"DeviceManager InitDevice() Port {port.Name} already open.");
+            Console.WriteLine($"Device on port {port.Name} already open.");
             return;
         }
-
-        Console.WriteLine($"DeviceManager InitDevice() Attempting to initialize {_defaultProtocol} device on port {port.Name}...");
+        Console.WriteLine($"Initializing {_device.Protocol} _device on port {port.Name}...");
 
         try
         {
-            this.currentDevice.Protocol = _defaultProtocol;
-            this.currentDevice.Open(port.Name);
-            Console.WriteLine($"DeviceManager InitDevice() Device on port {port.Name} initialized.");
+            _device.Open(port.Name);
 
-            _initMEI(this.currentDevice, MEIInstruction.InitAndPoll);
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
-            Console.WriteLine($"DeviceManager InitDevice() ❌ Error initializing device: {ex.Message}");
+            Console.WriteLine($"Error initializing _device: {ex.Message}");
         }
     }
 
-    private void _initMEI(RAVDevice device, MEIInstruction instruction)
+    public void Init()
     {
+        MEIInstruction instruction = MEIInstruction.InitAndPoll;//TODO change to Icommand adapter
         uint outLen = 0;
         MEICommand reset = new MEICommand(MEIInstruction.SoftReset, 0, 0);
         MEICommand stdHostToAcc = new MEICommand(MEIInstruction.StdHostToAcc, 0, 128);
@@ -79,20 +73,20 @@ public class DeviceManager : IDisposable
         {
             int initWait = 0;
 
-            device.Execute(reset);
-            Console.WriteLine("DeviceManager initMEI() Waiting for the device to initialize...");
+            _device.Execute(reset);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Waiting for the _device to initialize...");
 
             while (initWait < 30)
             {
                 try
                 {
-                    outLen = device.Get(stdHostToAcc);
-                    Console.WriteLine("DeviceManager initMEI() Initialization done");
+                    outLen = _device.Get(stdHostToAcc);
+                    Console.WriteLine("MEIDeviceAdapter initMEI() Initialization done");
                     break;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"DeviceManager initMEI() initWait. {ex.Message}");
+                    Console.WriteLine($"MEIDeviceAdapter initMEI() initWait. {ex.Message}");
                     initWait++;
                     Thread.Sleep(50);
                 }
@@ -100,7 +94,7 @@ public class DeviceManager : IDisposable
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Operation failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Operation failed: " + exc.Message);
             return;
         }
         Stopwatch sw = null;
@@ -108,89 +102,89 @@ public class DeviceManager : IDisposable
 
         try
         {
-            Console.WriteLine("DeviceManager initMEI()  device.Set(setDenom);");
-            device.Set(setDenom);
+            Console.WriteLine("MEIDeviceAdapter initMEI()  _device.Set(setDenom);");
+            _device.Set(setDenom);
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Set denomination failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Set denomination failed: " + exc.Message);
             return;
         }
 
         try
         {
-            Console.WriteLine("DeviceManager initMEI()  device.Set(setInt);");
-            device.Set(setInt);
+            Console.WriteLine("MEIDeviceAdapter initMEI()  _device.Set(setInt);");
+            _device.Set(setInt);
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Set interrupt failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Set interrupt failed: " + exc.Message);
             return;
         }
 
         // try
         // {
-        //     device.Set(setSec);
+        //     _device.Set(setSec);
         // }
         // catch (Exception exc)
         // {
-        //     Console.WriteLine("DeviceManager initMEI() Set security failed: " + exc.Message);
+        //     Console.WriteLine("MEIDeviceAdapter initMEI() Set security failed: " + exc.Message);
         //     return;
         // }
 
         try
         {
-            Console.WriteLine("DeviceManager initMEI()   device.Set(setOri);");
+            Console.WriteLine("MEIDeviceAdapter initMEI()   _device.Set(setOri);");
 
-            device.Set(setOri);
+            _device.Set(setOri);
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Set orientation failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Set orientation failed: " + exc.Message);
             return;
         }
 
         try
         {
-            Console.WriteLine("DeviceManager initMEI()  setEscrow.RunOn(device);");
-            setEscrow.RunOn(device); //alternate way of calling a command
+            Console.WriteLine("MEIDeviceAdapter initMEI()  setEscrow.RunOn(_device);");
+            setEscrow.RunOn(_device); //alternate way of calling a command
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Set escrow failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Set escrow failed: " + exc.Message);
             return;
         }
 
         try
         {
-            Console.WriteLine("DeviceManager initMEI()   setPush.RunOn(device);");
-            setPush.RunOn(device);
+            Console.WriteLine("MEIDeviceAdapter initMEI()   setPush.RunOn(_device);");
+            setPush.RunOn(_device);
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Set push failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Set push failed: " + exc.Message);
             return;
         }
 
         try
         {
-            Console.WriteLine("DeviceManager initMEI()   setBar.RunOn(device);");
-            setBar.RunOn(device);
+            Console.WriteLine("MEIDeviceAdapter initMEI()   setBar.RunOn(_device);");
+            setBar.RunOn(_device);
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Set barcode decoding failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Set barcode decoding failed: " + exc.Message);
             return;
         }
 
         try
         {
-            Console.WriteLine("DeviceManager initMEI()    setPup.RunOn(device);");
-            setPup.RunOn(device);
+            Console.WriteLine("MEIDeviceAdapter initMEI()    setPup.RunOn(_device);");
+            setPup.RunOn(_device);
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Set powerup failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Set powerup failed: " + exc.Message);
             return;
         }
         sw.Stop();
@@ -203,7 +197,7 @@ public class DeviceManager : IDisposable
                     {
                         // Enable extended note reporting
                         setNote.InputBuffer[0] = 0x00;
-                        setNote.RunOn(device);
+                        setNote.RunOn(_device);
 
                         break;
                     }
@@ -211,7 +205,7 @@ public class DeviceManager : IDisposable
                     {
                         // Enable extended note reporting 
                         setNote.InputBuffer[0] = 0x01;
-                        setNote.RunOn(device);
+                        setNote.RunOn(_device);
 
                         //Enable all the Bank Note
                         MEIExtendedCommand setExtendedNote = new MEIExtendedCommand
@@ -219,19 +213,19 @@ public class DeviceManager : IDisposable
 
                         for (int i = 0; i < 8; i++)
                             setExtendedNote.InputBuffer[i] = 0xFF;
-                        device.Set(setExtendedNote);
+                        _device.Set(setExtendedNote);
                         break;
                     }
                 case MEIInstruction.InitExtScaScrAndPoll:   // Extended Note SC Adv SCR - 19 bytes of denomination
                     {
                         // Enable extended note reporting
                         setNote.InputBuffer[0] = 0x02;
-                        setNote.RunOn(device);
+                        setNote.RunOn(_device);
 
                         //Enable all the Bank Note
                         MEIExtendedCommand setExtendedNote = new MEIExtendedCommand
                             (MEIMessageExtendedSubtype.SetExtendedNoteInhibits, 8);
-                        device.Set(setExtendedNote);
+                        _device.Set(setExtendedNote);
 
                         break;
                     }
@@ -242,50 +236,36 @@ public class DeviceManager : IDisposable
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Init and Poll failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Init and Poll failed: " + exc.Message);
             return;
         }
         try
         {
-            setCpn.RunOn(device);
+            setCpn.RunOn(_device);
         }
         catch (Exception exc)
         {
-            Console.WriteLine("DeviceManager initMEI() Disable extended coupon reporting failed: " + exc.Message);
+            Console.WriteLine("MEIDeviceAdapter initMEI() Disable extended coupon reporting failed: " + exc.Message);
             return;
         }
 
-        Console.Write("DeviceManager initMEI() Test executed successfully\n");
-        MeiPoll(this.currentDevice, stdHostToAcc, outLen);
+        Console.Write("MEIDeviceAdapter initMEI() Test executed successfully\n");
     }
 
-
-
-    public void StopPolling()
-    {
-        pollOn = false;
-        Console.WriteLine("DeviceManager StopPolling() Polling stopped.");
-    }
-
-    public void StartPolling()
-    {
-        pollOn = true;
-        Console.WriteLine("DeviceManager StartPolling() Pollinenabled.");
-        // MeiPoll(this.currentDevice);
-    }
-
-    private void MeiPoll(RAVDevice device, MEICommand stdHostToAcc, uint outLen)
+    public void Poll()
     {
         byte[] buffer = new byte[128];
-        if (pollOn)
-            Console.WriteLine("Devicemanager MeiPoll() Start task (E7 command) send polling to Note Acceptor \n");
+        if (IsPolling)
+            Console.WriteLine("MEIDeviceAdapter MeiPoll() Start task (E7 command) send polling to Note Acceptor \n");
 
-
-        while (pollOn)
+        uint outLen = 0;
+        while (IsPolling)
         {
             // Standard host to acceptor poll. When using input length 0 the library fills in the
             // data with the current configuration
-            outLen = device.Get(stdHostToAcc);
+            MEICommand stdHostToAcc = new MEICommand(MEIInstruction.StdHostToAcc, 0, 128);
+
+            outLen = _device.Get(stdHostToAcc);
             uint status = BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1);
             Console.WriteLine($"Polling status: 0x{status:X8} ({(MeiStatus)status})");
 
@@ -312,13 +292,15 @@ public class DeviceManager : IDisposable
             if (outLen >= 5 && (((MeiStatus)BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1)) & MeiStatus.Escrowed) == MeiStatus.Escrowed)
             {
                 Console.WriteLine("Devicemanager MeiPoll() Received escrowed event");
-                // StackBillTEST();
+                int denominationIndex = (stdHostToAcc.OutputBuffer[3] & 0x38) >> 3;
+                Console.WriteLine($"Denomination index: {denominationIndex}");
             }
             else if (outLen >= 10 && (((MeiStatus)BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 2)) & MeiStatus.Escrowed) == MeiStatus.Escrowed)
             {
                 Console.WriteLine("Devicemanager MeiPoll() Received status Extended : 0x{0:X2} 0x{1:X2} 0x{2:X2}", buffer[0], buffer[1], buffer[2]);
                 Console.WriteLine("Devicemanager MeiPoll() Received escrowed event");
-                // StackBillTEST();
+                int denominationIndex = (stdHostToAcc.OutputBuffer[3] & 0x38) >> 3;
+                Console.WriteLine($"Denomination index: {denominationIndex}");
             }
             else if (outLen >= 5 && BitConverter.ToUInt16(stdHostToAcc.OutputBuffer, 1) != 0x1001)
             {
@@ -333,47 +315,18 @@ public class DeviceManager : IDisposable
 
     public void ReturnBill()
     {
-        Console.WriteLine("DeviceManager ReturnBill() Bill return.");
-        this.currentDevice.ExecuteWithMenuOption(MenuOption.MEI_Return);
+        Console.WriteLine("MEIDeviceAdapter ReturnBill() Bill return.");
+        this._device.ExecuteWithMenuOption(MenuOption.MEI_Return);
     }
 
     public void StackBill()
     {
-        Console.WriteLine("DeviceManager StackBill() ");
-        // Thread.Sleep(1000);
-        this.currentDevice.ExecuteWithMenuOption(MenuOption.MEI_Stack);
+        Console.WriteLine("MEIDeviceAdapter StackBill() ");
+        this._device.ExecuteWithMenuOption(MenuOption.MEI_Stack);
     }
 
-    public void StackBillTEST()
-    {
-        Console.WriteLine("DeviceManager StackBillTEST()");
-        // Thread.Sleep(1000);
-        MEICommand stack = new MEICommand(MEIInstruction.Stack, 0, 0);
-        stack.RunOn(this.currentDevice);
-    }
+    public void Dispose() => _device.Dispose();
 
-
-    public void ClosePort(SerialPortIndex port)
-    {
-        this.StopPolling();
-        if (_devices[port] == null || !_devices[port].IsOpen)
-        {
-            Console.WriteLine($"DeviceManager ClosePort() Port {port.Name} is not open.");
-            return;
-        }
-
-        try
-        {
-            var protocol = _devices[port].Protocol;
-            _devices[port].Dispose();
-            _devices[port] = new RAVDevice(port, protocol);
-            Console.WriteLine($"DeviceManager ClosePort() Device on port {port.Name} closed.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"DeviceManager ClosePort() ❌ Error closing device: {ex.Message}");
-        }
-    }
     private static void printTime(long ticks, int repetitions)
     {
         double seconds = ((double)ticks) / ((double)Stopwatch.Frequency);
@@ -400,8 +353,6 @@ public class DeviceManager : IDisposable
 
         Console.Write("\n----------------  End of results  ----------------\n");
     }
-    public void Dispose()
-    {
-        ClosePort(_defaultPort);
-    }
+
+
 }

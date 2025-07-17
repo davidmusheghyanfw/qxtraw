@@ -40,15 +40,14 @@ class Program
         Console.WriteLine("  [1] Start poll");
         Console.WriteLine("  [2] Stop poll");
         Console.WriteLine("  [3] Return bill");
-        Console.WriteLine("  [4] Stack bill (TEST)");
-        Console.WriteLine("  [5] Stack bill extension");
-        Console.WriteLine("  [6] Exit");
+        Console.WriteLine("  [4] Stack bill extension");
+        Console.WriteLine("  [5] Exit");
         Console.WriteLine();
-        var deviceManager = new DeviceManager();
+        var deviceManager = new DeviceManager((port) => new MEIDeviceAdapter(port));
 
         var deviceThread = new Thread(() =>
                {
-                   deviceManager.StartAllDevices();
+                   deviceManager.Initalize();
 
                });
 
@@ -92,14 +91,10 @@ class Program
                     break;
 
                 case "4":
-                    manager.StackBillTEST();
-                    break;
-
-                case "5":
                     manager.StackBill();
                     break;
 
-                case "6":
+                case "5":
                     Console.WriteLine("Exiting...");
                     exitRequested = true;
                     manager.StopPolling();

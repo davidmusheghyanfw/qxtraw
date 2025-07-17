@@ -43,7 +43,7 @@ public class MEIDeviceAdapter : IDeviceAdapter
 
     public void Init()
     {
-        MEIInstruction instruction = MEIInstruction.InitAndPoll;//TODO change to Icommand adapter
+        MEIInstruction instruction = MEIInstruction.InitExtCfscAndPoll;//TODO change to Icommand adapter
         uint outLen = 0;
         MEICommand reset = new MEICommand(MEIInstruction.SoftReset, 0, 0);
         MEICommand stdHostToAcc = new MEICommand(MEIInstruction.StdHostToAcc, 0, 128);

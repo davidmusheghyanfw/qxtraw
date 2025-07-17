@@ -6,20 +6,9 @@ public static class Extensions
 {
     public static void ExecuteWithMenuOption(this RAVDevice device, MenuOption option)
     {
-        Stopwatch sw = null;
-        RAVCommand cmd = null;
+        Stopwatch sw;
+        RAVCommand cmd;
 
-        // Example: Uncomment and adapt if needed
-        // if (device.Protocol == ProtocolIdentifier.JCM)
-        // {
-        //     cmd = new JCMCommand(ToJCMInstruction(option), 0, 0);
-        // }
-        // else if (device.Protocol == ProtocolIdentifier.MEI)
-        // {
-        //     cmd = new MEICommand(ToMEIInstruction(option), 0, 0);
-        // }
-
-        // For now, always using MEICommand:
         cmd = new MEICommand(ToMEIInstruction(option), 0, 0);
 
         try

@@ -264,8 +264,15 @@ public class MEIDeviceAdapter : IDeviceAdapter
             // Standard host to acceptor poll. When using input length 0 the library fills in the
             // data with the current configuration
             MEICommand stdHostToAcc = new MEICommand(MEIInstruction.StdHostToAcc, 0, 128);
-
-            outLen = _device.Get(stdHostToAcc);
+            try
+            {
+                outLen = _device.Get(stdHostToAcc);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"MEIDeviceAdapter Poll() ERROR {ex.Message}");
+                continue;
+            }
             uint status = BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1);
             Console.WriteLine($"Polling status: 0x{status:X8} ({(MeiStatus)status})");
 

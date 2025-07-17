@@ -40,7 +40,7 @@ public class DeviceManager : IDisposable
             this.currentDevice.Open(port.Name);
             Console.WriteLine($"DeviceManager InitDevice() Device on port {port.Name} initialized.");
 
-            _initMEI(this.currentDevice, MEIInstruction.InitExtCfscAndPoll);
+            _initMEI(this.currentDevice, MEIInstruction.InitAndPoll);
         }
         catch (Exception ex)
         {
@@ -280,74 +280,7 @@ public class DeviceManager : IDisposable
         if (pollOn)
             Console.WriteLine("Devicemanager MeiPoll() Start task (E7 command) send polling to Note Acceptor \n");
 
-        // while (pollOn)
-        // {
-        //     try
-        //     {
-        //         outLen = stdHostToAcc.RunOn(device);
-        //         byte subtype = stdHostToAcc.OutputBuffer[1];
 
-        //         Console.WriteLine($"TOP Extended message subtype: 0x{subtype:X2}");
-        //         // Check whether the received response is a standard Acceptor to Host message
-        //         if ((stdHostToAcc.OutputBuffer[0] & 0xF0) == (int)MEIInstruction.StdAccToHost)
-        //         {
-        //             subtype = stdHostToAcc.OutputBuffer[1];
-
-        //             Console.WriteLine($"StdAccToHost message subtype: 0x{subtype:X2}");
-
-        //             // In this case, the status data bytes are retrieved from the second index in the array
-        //             if (outLen >= 5 && (((MeiStatus)BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1)) & MeiStatus.Escrowed) == Quixant.LibRAV.MeiStatus.Escrowed)
-        //             {
-        //                 Console.WriteLine("Received escrowed event of a bank note");
-        //                 int denomination = (stdHostToAcc.OutputBuffer[3] & 0x38) >> 3; // Bits 3-5 represent the denomination
-        //                 Console.WriteLine("Denomination: " + denomination);
-        //                 Console.WriteLine("Sending stack command...");
-        //             }
-        //             else if (outLen >= 5 && BitConverter.ToUInt16(stdHostToAcc.OutputBuffer, 1) != 0x1001)
-        //             {
-        //                 uint statusValue = BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1);
-        //                 Console.WriteLine("Received status: " + statusValue.ToString("X8"));
-        //             }
-        //         }
-        //         else if ((stdHostToAcc.OutputBuffer[0] & 0xF0) == (int)MEIInstruction.ExtendedMsgSet)
-        //         {
-        //             subtype = stdHostToAcc.OutputBuffer[1];
-
-        //             Console.WriteLine($"ExtendedMsgSet message subtype: 0x{subtype:X2}");
-
-        //             // Switch the extended command subtype
-        //             switch (stdHostToAcc.OutputBuffer[1])
-        //             {
-        //                 case (byte)MEIMessageExtendedSubtype.ExtendedBarcodeReply:
-        //                     {
-        //                         Console.WriteLine("Received escrowed event of a ticket");
-        //                         // The extended data field for Barcodes is 28 bytes long and represented in ASCII.
-        //                         // The Barcode data is left justified LSC (Least Significant Character)
-        //                         // and all unused bytes are filled with 0x28.
-        //                         // First 8 bytes are:
-        //                         // Message type + Sybtype + Status data (4 bytes) + Model# + Revision#
-        //                         Console.Write("Barcode value: ");
-        //                         for (int i = 8; i < 28 && stdHostToAcc.OutputBuffer[i] != 0x28; i++)
-        //                         {
-        //                             Console.Write((char)stdHostToAcc.OutputBuffer[i]);
-        //                         }
-        //                         Console.WriteLine();
-        //                         Console.WriteLine("Sending stack command...");
-        //                         break;
-        //                     }
-        //                 default:
-        //                     break;
-        //             }
-        //         }
-        //     }
-        //     catch (Exception exc)
-        //     {
-        //         Console.WriteLine("\nGet error: " + exc.Message);
-        //     }
-        //     Thread.Sleep(50);
-        // }
-        // return;
-        // // Poll the device each 200 ms 
         while (pollOn)
         {
             // Standard host to acceptor poll. When using input length 0 the library fills in the

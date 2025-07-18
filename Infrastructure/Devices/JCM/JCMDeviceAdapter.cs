@@ -20,33 +20,71 @@ class JCMDeviceAdapter : IDeviceAdapter
 
     public void Init()
     {
+        Console.WriteLine("JCMDeviceAdapter Init() starting...");
+        Stopwatch sw = Stopwatch.StartNew();
         bool success = false;
-        int retries = 0;
+
+        // --- 1. Define all commands ---
         JCMCommand getStatus = new JCMCommand(JCMInstruction.GetStatus, 0, 128);
         JCMCommand reset = new JCMCommand(JCMInstruction.Reset, 0, 0);
+
+        // Configuration Commands
         JCMCommand setEnableDisable = new JCMCommand(JCMInstruction.SetEnableDisable, 2, 0);
         setEnableDisable.InputBuffer[0] = 0x00;
         setEnableDisable.InputBuffer[1] = 0x00;
+
         JCMCommand setSecurity = new JCMCommand(JCMInstruction.SetSecurity, 2, 0);
         setSecurity.InputBuffer[0] = 0x00;
         setSecurity.InputBuffer[1] = 0x00;
+
         JCMCommand setOptionalFunction = new JCMCommand(JCMInstruction.SetOptionalFunction, 2, 0);
-        setOptionalFunction.InputBuffer[0] = 0x03;
-        setOptionalFunction.InputBuffer[1] = 0x00;
+        setOptionalFunction.InputBuffer[0] = 0x03; // Enable four-way acceptance
+
         JCMCommand setInhibit = new JCMCommand(JCMInstruction.SetInhibit, 1, 0);
-        setInhibit.InputBuffer[0] = 0x00;
+        setInhibit.InputBuffer[0] = 0x00; // Enable ALL banknote denominations
+
         JCMCommand setBarcodeFunction = new JCMCommand(JCMInstruction.SetBarcodeFunction, 2, 0);
-        setBarcodeFunction.InputBuffer[0] = 0x01;
+        setBarcodeFunction.InputBuffer[0] = 0x01; // Enable barcode reader
         setBarcodeFunction.InputBuffer[1] = 0x12;
+
         JCMCommand setBarInhibit = new JCMCommand(JCMInstruction.SetBarInhibit, 1, 0);
         setBarInhibit.InputBuffer[0] = 0xFC;
-        Stopwatch sw = Stopwatch.StartNew();
 
         try
         {
-            _device.Get(getStatus);
+            // --- 2. Reset the device ---
+            Console.WriteLine("JCMDeviceAdapter Init() Sending Reset command...");
             _device.Execute(reset);
-            _device.Get(getStatus);
+
+            // --- 3. WAIT for the device to finish initializing ---
+            Console.Write("JCMDeviceAdapter Init() Waiting for device to become ready");
+            int retries = 0;
+            do
+            {
+                Thread.Sleep(200); // Give the device time to process between polls
+                _device.Get(getStatus);
+                retries++;
+
+                if (getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.Initializing)
+                {
+                    Console.Write(".");
+                }
+
+            } while (getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.Initializing && retries < 100);
+
+            Console.WriteLine(); // New line after the waiting dots..
+
+            // --- 4. Check if the device is ready or timed out ---
+            byte finalStatus = getStatus.OutputBuffer[0];
+            if (finalStatus == (byte)JCMStatusResponse.Initializing)
+            {
+                throw new Exception("Device timed out and is still initializing.");
+            }
+
+            Console.WriteLine($"JCMDeviceAdapter Init() Device is ready. Status: 0x{finalStatus:X2}");
+
+            // --- 5. NOW that it's ready, send all configuration commands ---
+            Console.WriteLine("JCMDeviceAdapter Init() Sending configuration commands...");
             _device.Set(setEnableDisable);
             _device.Set(setSecurity);
             _device.Set(setOptionalFunction);
@@ -54,28 +92,11 @@ class JCMDeviceAdapter : IDeviceAdapter
             _device.Set(setBarcodeFunction);
             _device.Set(setBarInhibit);
 
-            do
-            {
-                _device.Get(getStatus);
-                retries++;
-
-                if (getStatus.OutputBuffer[0] != (byte)JCMInstruction.GetStatus)
-                    Thread.Sleep(1000);
-
-                if (retries == 1 && getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.Initializing)
-                    Console.Write("JCMDeviceAdapter Init() Initializing");
-                else if (retries > 1 && getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.Initializing)
-                    Console.Write(".");
-                else
-                    Console.WriteLine("\nJCMDeviceAdapter Init() Status: 0x{0:X2}", getStatus.OutputBuffer[0]);
-
-            } while (getStatus.OutputBuffer[0] != (byte)JCMInstruction.GetStatus && retries < 100);
-
             success = true;
         }
         catch (Exception exc)
         {
-            Console.WriteLine("JCMDeviceAdapter Init() Test failed: " + exc.Message);
+            Console.WriteLine($"\nJCMDeviceAdapter Init() Test failed: {exc.Message}");
         }
         finally
         {
@@ -84,7 +105,7 @@ class JCMDeviceAdapter : IDeviceAdapter
 
         if (success)
         {
-            Console.WriteLine("JCMDeviceAdapter Init() Test succeeded.");
+            Console.WriteLine("\nJCMDeviceAdapter Init() Test succeeded.");
             printTime(sw.ElapsedTicks, 1);
         }
     }

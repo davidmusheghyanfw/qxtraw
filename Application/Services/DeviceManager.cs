@@ -15,12 +15,12 @@ public class DeviceManager : IDisposable
     public void Initalize()
     {
         _currentDeviceAdapter.Open();
+        Console.WriteLine($"DeviceManager Initalize() Port opened on {_defaultPort.Name}.");
         _currentDeviceAdapter.Init();
+        Console.WriteLine($"DeviceManager Initalize() Device on port {_defaultPort.Name} initialized. \n Polling Started.");
+
         _currentDeviceAdapter.Poll();
-        Console.WriteLine($"DeviceManager Initalize() Device on port {_defaultPort.Name} initialized.");
     }
-
-
 
     public void StopPolling()
     {

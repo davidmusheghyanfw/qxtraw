@@ -63,11 +63,11 @@ class JCMDeviceAdapter : IDeviceAdapter
                     Thread.Sleep(1000);
 
                 if (retries == 1 && getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.Initializing)
-                    Console.Write("Initializing");
+                    Console.Write("JCMDeviceAdapter Init() Initializing");
                 else if (retries > 1 && getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.Initializing)
                     Console.Write(".");
                 else
-                    Console.WriteLine("\nStatus: 0x{0:X2}", getStatus.OutputBuffer[0]);
+                    Console.WriteLine("\nJCMDeviceAdapter Init() Status: 0x{0:X2}", getStatus.OutputBuffer[0]);
 
             } while (getStatus.OutputBuffer[0] != (byte)JCMInstruction.GetStatus && retries < 100);
 
@@ -75,7 +75,7 @@ class JCMDeviceAdapter : IDeviceAdapter
         }
         catch (Exception exc)
         {
-            Console.WriteLine("Test failed: " + exc.Message);
+            Console.WriteLine("JCMDeviceAdapter Init() Test failed: " + exc.Message);
         }
         finally
         {
@@ -84,7 +84,7 @@ class JCMDeviceAdapter : IDeviceAdapter
 
         if (success)
         {
-            Console.WriteLine("Test succeeded.");
+            Console.WriteLine("JCMDeviceAdapter Init() Test succeeded.");
             printTime(sw.ElapsedTicks, 1);
         }
     }
@@ -94,10 +94,10 @@ class JCMDeviceAdapter : IDeviceAdapter
     {
         if (_device.IsOpen)
         {
-            Console.WriteLine($"Device on port {port.Name} already open.");
+            Console.WriteLine($"JCMDeviceAdapter Open() Device on port {port.Name} already open.");
             return;
         }
-        Console.WriteLine($"Initializing {_device.Protocol} _device on port {port.Name}...");
+        Console.WriteLine($"JCMDeviceAdapter Open() Initializing {_device.Protocol} _device on port {port.Name}...");
 
         try
         {
@@ -106,7 +106,7 @@ class JCMDeviceAdapter : IDeviceAdapter
         }
         catch (System.Exception ex)
         {
-            Console.WriteLine($"Error initializing _device: {ex.Message}");
+            Console.WriteLine($"JCMDeviceAdapter Open() Error initializing _device: {ex.Message}");
         }
     }
 
@@ -118,7 +118,7 @@ class JCMDeviceAdapter : IDeviceAdapter
         JCMCommand stack1 = new JCMCommand(JCMInstruction.Stack1, 0, 0);
         JCMCommand ack = new JCMCommand(JCMInstruction.Ack, 0, 0);
         JCMCommand setInihibit = new JCMCommand(JCMInstruction.SetInhibit, 1, 0);
-        Console.Write("Please insert bill...\n");
+        Console.Write("JCMDeviceAdapter Poll() Please insert bill...\n");
 
         try
         {
@@ -131,10 +131,10 @@ class JCMDeviceAdapter : IDeviceAdapter
 
                 if (getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.Disabled)
                 {
-                    Console.Write("Device is currently disabled. Now enabling it sending a SetInhibit command...\n");
+                    Console.Write("JCMDeviceAdapter Poll() Device is currently disabled. Now enabling it sending a SetInhibit command...\n");
                     _device.Set(setInihibit);
                     if (_device.LastErrorCode != RAVResult.Q_SUCCESS)
-                        Console.Write("Error in SetInhibit command. Received error code: {0}\n",
+                        Console.Write("JCMDeviceAdapter Poll() Error in SetInhibit command. Received error code: {0}\n",
                             _device.LastErrorCode);
                     Thread.Sleep(500);
                 }
@@ -144,19 +144,19 @@ class JCMDeviceAdapter : IDeviceAdapter
                 }
 
                 if (retries == 1)
-                    Console.Write("Waiting for status 0x12 (ACCEPTING)\nCurrent status: ");
+                    Console.Write("JCMDeviceAdapter Poll() Waiting for status 0x12 (ACCEPTING)\nCurrent status: ");
                 else
-                    Console.Write("0x{0:X2}  ", getStatus.OutputBuffer[0]);
+                    Console.Write("JCMDeviceAdapter Poll() 0x{0:X2}  ", getStatus.OutputBuffer[0]);
 
             } while (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.Accepting && retries < 100);
 
             if (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.Accepting)
             {
-                Console.Write("\nTimed out or error occurred. Exiting test.\n");
+                Console.Write("\nJCMDeviceAdapter Poll() Timed out or error occurred. Exiting test.\n");
                 return;
             }
 
-            Console.Write("\nAccepting...\n");
+            Console.Write("\nJCMDeviceAdapter Poll() Accepting...\n");
 
             retries = 0;
 
@@ -171,21 +171,21 @@ class JCMDeviceAdapter : IDeviceAdapter
                 }
 
                 if (retries == 1)
-                    Console.Write("Waiting for status 0x13 (ESCROW)\nCurrent status: ");
+                    Console.Write("JCMDeviceAdapter Poll() Waiting for status 0x13 (ESCROW)\nCurrent status: ");
                 else
-                    Console.Write("0x{0:X2}  ", getStatus.OutputBuffer[0]);
+                    Console.Write("JCMDeviceAdapter Poll() 0x{0:X2}  ", getStatus.OutputBuffer[0]);
 
             } while (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.Escrow && retries < 10);
 
             if (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.Escrow)
             {
-                Console.Write("\nTimed out or error occurred. Exiting test.\n");
+                Console.Write("\nJCMDeviceAdapter Poll() Timed out or error occurred. Exiting test.\n");
                 return;
             }
 
-            Console.Write("\nEscrow\n");
+            Console.Write("\nJCMDeviceAdapter Poll() Escrow\n");
 
-            Console.Write("Sending Stack-1\n");
+            Console.Write("JCMDeviceAdapter Poll() Sending Stack-1\n");
             _device.Execute(stack1);
 
             retries = 0;
@@ -198,12 +198,12 @@ class JCMDeviceAdapter : IDeviceAdapter
                 if (getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.Stacking)
                 {
                     if (retries == 1)
-                        Console.Write("Stacking...\nWaiting for status 0x15 (VEND VALID)\nCurrent status: ");
+                        Console.Write("JCMDeviceAdapter Poll() Stacking...\nWaiting for status 0x15 (VEND VALID)\nCurrent status: ");
                     Thread.Sleep(500);
                 }
                 else
                 {
-                    Console.Write("0x{0:X2}  ", getStatus.OutputBuffer[0]);
+                    Console.Write("JCMDeviceAdapter Poll() 0x{0:X2}  ", getStatus.OutputBuffer[0]);
                     Thread.Sleep(500);
                 }
 
@@ -211,17 +211,17 @@ class JCMDeviceAdapter : IDeviceAdapter
 
             if (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.VendValid)
             {
-                Console.Write("\nTimed out or error occurred. Exiting test.\n");
+                Console.Write("\nJCMDeviceAdapter Poll() Timed out or error occurred. Exiting test.\n");
                 return;
             }
 
-            Console.Write("\nVend valid\n");
+            Console.Write("\nJCMDeviceAdapter Poll() Vend valid\n");
 
             // Send acknowledge
             _device.Execute(ack);
             Thread.Sleep(500);
 
-            Console.Write("Acknowledge sent\n");
+            Console.Write("JCMDeviceAdapter Poll() Acknowledge sent\n");
 
             retries = 0;
 
@@ -233,7 +233,7 @@ class JCMDeviceAdapter : IDeviceAdapter
                 if (getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.Stacked)
                 {
                     if (retries == 1)
-                        Console.Write("Stacked\nWaiting for idling...\n");
+                        Console.Write("JCMDeviceAdapter Poll() Stacked\nWaiting for idling...\n");
 
                     Thread.Sleep(500);
                 }
@@ -241,11 +241,11 @@ class JCMDeviceAdapter : IDeviceAdapter
                 {
                     // resend ack
                     _device.Execute(ack);
-                    Console.Write("Acknowledge resent\n");
+                    Console.Write("JCMDeviceAdapter Poll() Acknowledge resent\n");
                 }
                 else if (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.Enable)
                 {
-                    Console.Write("Waiting for idling status. Current status 0x{0:X2}\n", getStatus.OutputBuffer[0]);
+                    Console.Write("JCMDeviceAdapter Poll() Waiting for idling status. Current status 0x{0:X2}\n", getStatus.OutputBuffer[0]);
                     Thread.Sleep(500);
                 }
 
@@ -253,19 +253,19 @@ class JCMDeviceAdapter : IDeviceAdapter
 
             if (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.Enable)
             {
-                Console.Write("Timed out or error occurred. Exiting test.\n");
+                Console.Write("JCMDeviceAdapter Poll() Timed out or error occurred. Exiting test.\n");
                 return;
             }
 
-            Console.Write("Idling\n");
+            Console.Write("JCMDeviceAdapter Poll() Idling\n");
             sw.Stop();
 
-            Console.Write("Test executed successfully\n");
+            Console.Write("JCMDeviceAdapter Poll() Test executed successfully\n");
             printTime(sw.ElapsedTicks, 1);
         }
         catch (Exception exc)
         {
-            Console.WriteLine("Test failed somewhere: " + exc.Message);
+            Console.WriteLine("JCMDeviceAdapter Poll() Test failed somewhere: " + exc.Message);
         }
     }
 

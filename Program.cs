@@ -43,8 +43,8 @@ class Program
         Console.WriteLine("  [4] Stack bill extension");
         Console.WriteLine("  [5] Exit");
         Console.WriteLine();
-        var deviceManager = new DeviceManager((port) => new MEIDeviceAdapter(port));
-
+        // var deviceManager = new DeviceManager((port) => new MEIDeviceAdapter(port));
+        var deviceManager = new DeviceManager((port) => new JCMDeviceAdapter(port));
         var deviceThread = new Thread(() =>
                {
                    deviceManager.Initalize();

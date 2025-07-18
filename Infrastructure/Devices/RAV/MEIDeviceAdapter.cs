@@ -14,12 +14,12 @@ public class MEIDeviceAdapter : IDeviceAdapter
 
     public bool IsOpen => _device.IsOpen;
 
-    public bool IsPolling => true;
+    public bool _isPolling = true;
 
 
     private SerialPortIndex _port;
     public SerialPortIndex port { get => _port; set => _port = value; }
-    bool IDeviceAdapter.IsPolling { get => IsPolling; set => throw new NotImplementedException(); }
+    public bool IsPolling { get => _isPolling; set => _isPolling = value; }
 
     public void Open()
     {

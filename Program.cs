@@ -57,6 +57,14 @@ class Program
 
         inputThread.Start();
 
+        var nfcReader = new NFCReader();
+        var nfcThread = new Thread(() =>
+        {
+            nfcReader.Init();
+        });
+
+        nfcThread.Start();
+
         Console.WriteLine("✅ Server started. Waiting for Unity client...");
 
         // Wait for Unity connection

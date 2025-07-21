@@ -14,11 +14,29 @@ public class LEDController : IDisposable
         _controller.StartLedService();
     }
 
-    private void DisposeController()
+    public void DisposeController()
     {
         StopAllLoops();
         _controller?.Dispose();
         _controller = null;
+    }
+
+    public void SetStaticColors()
+    {
+        this.StopAllLoops();
+        this.SetSolidColor(0, Color.Red);
+        this.SetSolidColor(1, Color.Blue);
+        this.SetSolidColor(2, Color.Orange);
+        this.SetSolidColor(3, Color.Green);
+    }
+
+    public void SetLoopFade()
+    {
+        this.StopAllLoops();
+        this.LoopFade(0, Color.Red, Color.Blue, 1f);
+        this.LoopFade(1, Color.Green, Color.Yellow, 1f);
+        this.LoopFade(2, Color.Orange, Color.Purple, 1f);
+        this.LoopFade(3, Color.Cyan, Color.Magenta, 1f);
     }
 
     public void SetSolidColor(int ch, Color color)
@@ -178,6 +196,7 @@ public class LEDController : IDisposable
 
     public void StopAllLoops()
     {
+        Console.WriteLine("LEDController StopAllLoops() Stopping all loops");
         foreach (var cts in _channelLoops.Values)
         {
             cts.Cancel();
@@ -192,5 +211,7 @@ public class LEDController : IDisposable
     public void Dispose()
     {
         DisposeController();
+        Console.WriteLine("LEDController Dispose()");
+
     }
 }

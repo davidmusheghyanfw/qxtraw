@@ -43,6 +43,10 @@ class Program
         Console.WriteLine("  [3] Return bill");
         Console.WriteLine("  [4] Stack bill extension");
         Console.WriteLine("  [5] Exit");
+        Console.WriteLine("  [6] Set Solid Colors");
+        Console.WriteLine("  [7] Animate Colors");
+        Console.WriteLine("  [8] Dispose Led controller");
+
         Console.WriteLine();
         // var deviceManager = new DeviceManager((port) => new MEIDeviceAdapter(port));
         var deviceManager = new DeviceManager((port) => new JCMDeviceAdapter(port));
@@ -54,9 +58,7 @@ class Program
 
         deviceThread.Start();
 
-        var inputThread = new Thread(() => InputLoop(deviceManager));
 
-        inputThread.Start();
 
         var nfcReader = new NFCReader();
         var nfcThread = new Thread(() =>
@@ -71,15 +73,12 @@ class Program
         var ledThread = new Thread(() =>
         {
             ledController.Init();
-            ledController.StopAllLoops();
-            ledController.SetSolidColor(0, Color.Red);
-            ledController.SetSolidColor(1, Color.Blue);
-            ledController.SetSolidColor(2, Color.Orange);
-            ledController.SetSolidColor(3, Color.Green);
         });
 
         ledThread.Start();
+        var inputThread = new Thread(() => InputLoop(deviceManager, ledController));
 
+        inputThread.Start();
         Console.WriteLine("✅ Server started. Waiting for Unity client...");
 
         // Wait for Unity connection
@@ -89,7 +88,7 @@ class Program
 
     }
 
-    private static void InputLoop(DeviceManager manager)
+    private static void InputLoop(DeviceManager manager, LEDController ledController)
     {
         while (!exitRequested)
         {
@@ -122,7 +121,15 @@ class Program
                     exitRequested = true;
                     manager.StopPolling();
                     return;
-
+                case "6":
+                    ledController.SetStaticColors();
+                    return;
+                case "7":
+                    ledController.SetLoopFade();
+                    return;
+                case "8":
+                    ledController.DisposeController();
+                    return;
                 default:
                     Console.WriteLine("Invalid command.");
                     break;

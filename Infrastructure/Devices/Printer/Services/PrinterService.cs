@@ -3,11 +3,11 @@ using System.Text;
 class PrinterService
 {
     #region Serial Port Configuration
-    int DEFAULT_BAUD_RATE { get; }
-    int DEFAULT_READ_TIMEOUT { get; }
-    int DEFAULT_WRITE_TIMEOUT { get; }
-    int DEFAULT_DATA_BITS { get; }
-    int CONNECTION_DELAY_MS { get; }
+    int DEFAULT_BAUD_RATE => 38400;
+    int DEFAULT_READ_TIMEOUT => 1000;
+    int DEFAULT_WRITE_TIMEOUT => 1000;
+    int DEFAULT_DATA_BITS => 8;
+    int CONNECTION_DELAY_MS => 200;
     #endregion
 
     private PrinterConnectorService _printerConnector;

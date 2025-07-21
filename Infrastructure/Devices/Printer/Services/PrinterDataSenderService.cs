@@ -21,7 +21,10 @@ public class PrinterDataSenderService
 
                 if (buffer.Count > 0)
                 {
+                    Console.WriteLine("PrinterDataSenderService SendData() --------------------------");
+                    Console.WriteLine($"PrinterDataSenderService SendData() {buffer.ToArray()}");
                     _serialPort.Write(buffer.ToArray(), 0, buffer.Count);
+
                     Console.WriteLine("PrinterDataSenderService SendData() Sent the complete command buffer to the printer");
                 }
                 else

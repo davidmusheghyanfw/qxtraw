@@ -36,15 +36,15 @@ public class PrinterConnectorService
         {
             Disconnect(); // Ensure any existing connection is closed
 
-            string foundPort = await FindWorkingPrinterPortAsync(config);
+            // string foundPort = await FindWorkingPrinterPortAsync(config);
 
-            if (string.IsNullOrEmpty(foundPort))
-            {
-                Console.WriteLine("PrinterConnectorService ConnectAsync() No working printer port found");
-                return null;
-            }
+            // if (string.IsNullOrEmpty(foundPort))
+            // {
+            //     Console.WriteLine("PrinterConnectorService ConnectAsync() No working printer port found");
+            //     return null;
+            // }
 
-            await EstablishConnectionAsync(foundPort, config);
+            await EstablishConnectionAsync("/dev/ttyS2/", config);
         }
         catch (Exception ex)
         {

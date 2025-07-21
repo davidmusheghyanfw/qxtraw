@@ -46,6 +46,7 @@ class Program
         Console.WriteLine("  [6] Set Solid Colors");
         Console.WriteLine("  [7] Animate Colors");
         Console.WriteLine("  [8] Dispose Led controller");
+        Console.WriteLine("  [9] Print Demo Ticket");
 
         Console.WriteLine();
         // var deviceManager = new DeviceManager((port) => new MEIDeviceAdapter(port));
@@ -76,8 +77,17 @@ class Program
         });
 
         ledThread.Start();
-        var inputThread = new Thread(() => InputLoop(deviceManager, ledController));
+        var printerService = new PrinterService();
 
+        var printerThread = new Thread(() =>
+              {
+                  printerService.Init();
+                  printerService.PrintDemoTicket();
+              });
+
+        printerThread.Start();
+
+        var inputThread = new Thread(() => InputLoop(deviceManager, ledController, printerService));
         inputThread.Start();
         Console.WriteLine("✅ Server started. Waiting for Unity client...");
 
@@ -88,7 +98,7 @@ class Program
 
     }
 
-    private static void InputLoop(DeviceManager manager, LEDController ledController)
+    private static void InputLoop(DeviceManager manager, LEDController ledController, PrinterService printerService)
     {
         while (!exitRequested)
         {
@@ -129,6 +139,9 @@ class Program
                     return;
                 case "8":
                     ledController.DisposeController();
+                    return;
+                case "9":
+                    printerService.PrintDemoTicket();
                     return;
                 default:
                     Console.WriteLine("Invalid command.");

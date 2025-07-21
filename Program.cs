@@ -78,7 +78,7 @@ class Program
             ledController.SetSolidColor(3, Color.Green);
         });
 
-        nfcThread.Start();
+        ledThread.Start();
 
         Console.WriteLine("✅ Server started. Waiting for Unity client...");
 

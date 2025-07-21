@@ -20,13 +20,13 @@ public class PrinterConnectorService
     {
         if (IsConnecting)
         {
-            Console.WriteLine("Connection attempt already in progress");
+            Console.WriteLine("PrinterConnectorService ConnectAsync() Connection attempt already in progress");
             return null;
         }
 
         if (IsConnected)
         {
-            Console.WriteLine("Printer is already connected");
+            Console.WriteLine("PrinterConnectorService ConnectAsync() Printer is already connected");
             return null;
         }
 
@@ -40,7 +40,7 @@ public class PrinterConnectorService
 
             if (string.IsNullOrEmpty(foundPort))
             {
-                Console.WriteLine("No working printer port found");
+                Console.WriteLine("PrinterConnectorService ConnectAsync() No working printer port found");
                 return null;
             }
 
@@ -77,12 +77,12 @@ public class PrinterConnectorService
                 if (_serialPort.IsOpen)
                 {
                     _serialPort.Close();
-                    Console.WriteLine("Printer connection closed");
+                    Console.WriteLine("PrinterConnectorService Disconnect() Printer connection closed");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error closing printer connection: {ex.Message}");
+                Console.WriteLine($"PrinterConnectorService Disconnect() Error closing printer connection: {ex.Message}");
             }
             finally
             {

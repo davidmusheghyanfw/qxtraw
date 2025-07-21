@@ -24,7 +24,7 @@ public class PrinterDataSenderService
                     Console.WriteLine("PrinterDataSenderService SendData() --------------------------");
                     Console.WriteLine($"PrinterDataSenderService SendData() {buffer.ToArray()}");
                     _serialPort.Write(buffer.ToArray(), 0, buffer.Count);
-
+                    Thread.Sleep(500); // Wait for the data to be sent
                     Console.WriteLine("PrinterDataSenderService SendData() Sent the complete command buffer to the printer");
                 }
                 else

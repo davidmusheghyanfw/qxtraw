@@ -133,16 +133,16 @@ class Program
                     return;
                 case "6":
                     ledController.SetStaticColors();
-                    return;
+                    break;
                 case "7":
                     ledController.SetLoopFade();
-                    return;
+                    break;
                 case "8":
                     ledController.DisposeController();
-                    return;
+                    break;
                 case "9":
                     printerService.PrintDemoTicket();
-                    return;
+                    break;
                 default:
                     Console.WriteLine("Invalid command.");
                     break;

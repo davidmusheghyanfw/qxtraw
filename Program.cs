@@ -23,6 +23,7 @@
 
 //     await server.SendMessageAsync(input);
 // }
+using System.Drawing;
 using Quixant.LibRAV;
 
 class Program
@@ -61,6 +62,20 @@ class Program
         var nfcThread = new Thread(() =>
         {
             nfcReader.Init();
+        });
+
+        nfcThread.Start();
+
+
+        var ledController = new LEDController();
+        var ledThread = new Thread(() =>
+        {
+            ledController.Init();
+            ledController.StopAllLoops();
+            ledController.SetSolidColor(0, Color.Red);
+            ledController.SetSolidColor(1, Color.Blue);
+            ledController.SetSolidColor(2, Color.Orange);
+            ledController.SetSolidColor(3, Color.Green);
         });
 
         nfcThread.Start();

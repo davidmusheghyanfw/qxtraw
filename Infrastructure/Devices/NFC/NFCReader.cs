@@ -10,6 +10,15 @@ class NFCReader
                 readerNames == null || readerNames.Count < 1;
 
 
+    public event CardInsertedEvent OnCardInserted;
+    public event CardRemovedEvent OnCardRemoved;
+    public event CardInitializedEvent OnCardInitialized;
+    public event StatusChangeEvent OnStatusChanged;
+    public event MonitorExceptionEvent OnException;
+
+    private bool IsEmpty(ICollection<string> readerNames) => readerNames == null || readerNames.Count < 1;
+
+    private bool _pooling = true;
     public void Init()
     {
         Console.WriteLine("NFCReader Init()");
@@ -22,25 +31,23 @@ class NFCReader
             return;
         }
 
-        // Create smart-card monitor using a context factory. 
-        // The context will be automatically released after monitor.Dispose()
+        OnCardInserted += (sender, args) => DisplayEvent("CardInserted", args);
+        OnCardRemoved += (sender, args) => DisplayEvent("CardRemoved", args);
+        OnCardInitialized += (sender, args) => DisplayEvent("Initialized", args);
+        OnStatusChanged += StatusChanged;
+        OnException += MonitorException;
+
         using (var monitor = MonitorFactory.Instance.Create(SCardScope.System))
         {
-            AttachToAllEvents(monitor); // Remember to detach, if you use this in production!
+            AttachToAllEvents(monitor);
 
             ShowUserInfo(readerNames);
 
             monitor.Start(readerNames);
 
             // Let the program run until the user presses CTRL-Q
-            while (true)
+            while (_pooling)
             {
-                var key = Console.ReadKey();
-                if (ExitRequested(key))
-                {
-                    break;
-                }
-
                 if (monitor.Monitoring)
                 {
                     monitor.Cancel();
@@ -52,10 +59,13 @@ class NFCReader
                     Console.WriteLine("NFCReader Init() Monitoring started. (Press CTRL-Q to quit)");
                 }
             }
+            Console.WriteLine("NFCReader StopPolling() Stopping polling...");
+
+            DetachFromEvents(monitor);
         }
     }
 
-    private static void ShowUserInfo(IEnumerable<string> readerNames)
+    private void ShowUserInfo(IEnumerable<string> readerNames)
     {
         foreach (var reader in readerNames)
         {
@@ -65,37 +75,46 @@ class NFCReader
         Console.WriteLine("NFCReader ShowUserInfo() Press Ctrl-Q to exit or any key to toggle monitor.");
     }
 
-    private static void AttachToAllEvents(ISCardMonitor monitor)
+    private void AttachToAllEvents(ISCardMonitor monitor)
     {
-        // Point the callback function(s) to the anonymous & static defined methods below.
-        monitor.CardInserted += (sender, args) => DisplayEvent("CardInserted", args);
-        monitor.CardRemoved += (sender, args) => DisplayEvent("CardRemoved", args);
-        monitor.Initialized += (sender, args) => DisplayEvent("Initialized", args);
-        monitor.StatusChanged += StatusChanged;
-        monitor.MonitorException += MonitorException;
+        monitor.CardInserted += OnCardInserted;
+        monitor.CardRemoved += OnCardRemoved;
+        monitor.Initialized += OnCardInitialized;
+        monitor.StatusChanged += OnStatusChanged;
+        monitor.MonitorException += OnException;
     }
 
-    private static void DisplayEvent(string eventName, CardStatusEventArgs unknown)
+    private void DetachFromEvents(ISCardMonitor monitor)
+    {
+        Console.WriteLine("NFCReader DetachFromEvents() Detaching events...");
+        monitor.CardInserted -= OnCardInserted;
+        monitor.CardRemoved -= OnCardRemoved;
+        monitor.Initialized -= OnCardInitialized;
+        monitor.StatusChanged -= OnStatusChanged;
+        monitor.MonitorException -= OnException;
+    }
+
+    private void DisplayEvent(string eventName, CardStatusEventArgs unknown)
     {
         Console.WriteLine("NFCReader DisplayEvent()>> {0} Event for reader: {1}", eventName, unknown.ReaderName);
         Console.WriteLine("NFCReader DisplayEvent() ATR: {0}", BitConverter.ToString(unknown.Atr ?? new byte[0]));
         Console.WriteLine("NFCReader DisplayEvent() State: {0}\n", unknown.State);
     }
 
-    private static void StatusChanged(object sender, StatusChangeEventArgs args)
+    private void StatusChanged(object sender, StatusChangeEventArgs args)
     {
         Console.WriteLine("NFCReader StatusChanged()>> StatusChanged Event for reader: {0}", args.ReaderName);
         Console.WriteLine("NFCReader StatusChanged() ATR: {0}", BitConverter.ToString(args.Atr ?? new byte[0]));
         Console.WriteLine("NFCReader StatusChanged() Last state: {0}\nNew state: {1}\n", args.LastState, args.NewState);
     }
 
-    private static void MonitorException(object sender, PCSCException ex)
+    private void MonitorException(object sender, PCSCException ex)
     {
         Console.WriteLine("NFCReader MonitorException() Monitor exited due an error:");
         Console.WriteLine(SCardHelper.StringifyError(ex.SCardError));
     }
 
-    private static string[] GetReaderNames()
+    private string[] GetReaderNames()
     {
         using (var context = ContextFactory.Instance.Establish(SCardScope.System))
         {
@@ -103,67 +122,14 @@ class NFCReader
         }
     }
 
-    private static bool ExitRequested(ConsoleKeyInfo key) =>
+    private bool ExitRequested(ConsoleKeyInfo key) =>
         key.Modifiers == ConsoleModifiers.Control &&
         key.Key == ConsoleKey.Q;
 
-    private static bool IsEmpty(ICollection<string> readerNames) => readerNames == null || readerNames.Count < 1;
-    private void StartMonitoring()
+
+    public void StopPolling()
     {
-        using (var context = ContextFactory.Instance.Establish(SCardScope.System))
-        {
-            var readerNames = context.GetReaders();
-            if (NoReaderFound(readerNames))
-            {
-                Console.WriteLine("NFCReader You need at least one reader in order to run this example.");
-                return;
-            }
-
-            var readerName = readerNames[0];
-            if (readerName == null)
-            {
-                return;
-            }
-
-            using (var rfidReader = context.ConnectReader(readerName, SCardShareMode.Shared, SCardProtocol.Any))
-            {
-                var apdu = new CommandApdu(IsoCase.Case2Short, rfidReader.Protocol)
-                {
-                    CLA = 0xFF,
-                    Instruction = InstructionCode.GetData,
-                    P1 = 0x00,
-                    P2 = 0x00,
-                    Le = 0 // We don't know the ID tag size
-                };
-
-                using (rfidReader.Transaction(SCardReaderDisposition.Leave))
-                {
-                    Console.WriteLine("Retrieving the UID .... ");
-
-                    var sendPci = SCardPCI.GetPci(rfidReader.Protocol);
-                    var receivePci = new SCardPCI(); // IO returned protocol control information.
-
-                    var receiveBuffer = new byte[256];
-                    var command = apdu.ToArray();
-
-                    var bytesReceived = rfidReader.Transmit(
-                        sendPci, // Protocol Control Information (T0, T1 or Raw)
-                        command, // command APDU
-                        command.Length,
-                        receivePci, // returning Protocol Control Information
-                        receiveBuffer,
-                        receiveBuffer.Length); // data buffer
-
-                    var responseApdu =
-                        new ResponseApdu(receiveBuffer, bytesReceived, IsoCase.Case2Short, rfidReader.Protocol);
-
-                    Console.WriteLine("SW1: {0:X2}, SW2: {1:X2}\nUid: {2}",
-                        responseApdu.SW1,
-                        responseApdu.SW2,
-                        responseApdu.HasData ? BitConverter.ToString(responseApdu.GetData()) : "No uid received");
-                }
-            }
-        }
+        _pooling = false;
     }
 
 }

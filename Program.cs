@@ -87,7 +87,7 @@ class Program
 
         printerThread.Start();
 
-        var inputThread = new Thread(() => InputLoop(deviceManager, ledController, printerService));
+        var inputThread = new Thread(() => InputLoop(deviceManager, ledController, printerService, nfcReader));
         inputThread.Start();
         Console.WriteLine("✅ Server started. Waiting for Unity client...");
 
@@ -98,7 +98,7 @@ class Program
 
     }
 
-    private static void InputLoop(DeviceManager manager, LEDController ledController, IPrinter printerService)
+    private static void InputLoop(DeviceManager manager, LEDController ledController, IPrinter printerService, NFCReader nFCReader)
     {
         while (!exitRequested)
         {
@@ -130,6 +130,7 @@ class Program
                     Console.WriteLine("Exiting...");
                     exitRequested = true;
                     manager.StopPolling();
+                    nFCReader.StopPolling();
                     return;
                 case "6":
                     ledController.SetStaticColors();

@@ -44,7 +44,7 @@ public class PrinterConnectorService
             //     return null;
             // }
 
-            await EstablishConnectionAsync("/dev/ttyS0/", config);
+            await EstablishConnectionAsync("/dev/ttyS0", config);
         }
         catch (Exception ex)
         {

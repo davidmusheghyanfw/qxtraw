@@ -34,7 +34,7 @@ class NFCReader
         OnCardInserted += (sender, args) => DisplayEvent("CardInserted", args);
         OnCardRemoved += (sender, args) => DisplayEvent("CardRemoved", args);
         OnCardInitialized += (sender, args) => DisplayEvent("Initialized", args);
-        OnStatusChanged += StatusChanged;
+        // OnStatusChanged += StatusChanged;
         OnException += MonitorException;
 
         OnCardInserted += (sender, args) =>
@@ -126,11 +126,6 @@ class NFCReader
             return context.GetReaders();
         }
     }
-
-    private bool ExitRequested(ConsoleKeyInfo key) =>
-        key.Modifiers == ConsoleModifiers.Control &&
-        key.Key == ConsoleKey.Q;
-
 
     public void StopPolling()
     {

@@ -76,5 +76,5 @@ abstract class PrinterServiceAdapter : IPrinter
     }
 
 
-    private const string MOCK_DATA = $"^P|0|1|00-0000-0000-5366-8153|Your Establishment|Your Location|CITY / STATE / ZIP|||00-0000-0000-5366-8153|02/10/2012|00:02:21|Ticket # 12346|EIGHTY FIVE DOLLARS AND TWO CENTS|PR G|$85.02||30 days|MACHINE#1234-678|000000000053668153|^";
+    private const string MOCK_DATA = $"^P|0|1|TEST0001COUPON|Your Establishment|Your Location|CITY / STATE / ZIP|||TEST0001COUPON|02/10/2012|00:02:21|Ticket # 12346|EIGHTY FIVE DOLLARS AND TWO CENTS|PR G|$85.02||30 days|MACHINE#1234-678|TEST0001COUPON|^";
 }

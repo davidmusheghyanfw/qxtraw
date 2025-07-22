@@ -1,6 +1,6 @@
 public class PrinterData
 {
-    public int barCode;
+    public string barCode;
     public string date;
     public int ticketNumber;
     public float balanceLeft;
@@ -80,7 +80,7 @@ public class PrinterData
     public override string ToString()
     {
         // Format: ^P|0|1|barcode|establishment||||barcode|date|time|ticketNumber|amountInWords|PR G|amount||30 days|machineNumber|validation|^
-        string barcodeStr = barCode.ToString("D16").Insert(2, "-").Insert(7, "-").Insert(12, "-");
+        string barcodeStr = barCode.ToString();// barCode.ToString("D16").Insert(2, "-").Insert(7, "-").Insert(12, "-");
         string dateStr = !string.IsNullOrEmpty(date) ? date : DateTime.Now.ToString("dd/MM/yyyy");
         string timeStr = DateTime.Now.ToString("HH:mm:ss");
         string ticketStr = $"Ticket # {ticketNumber}";

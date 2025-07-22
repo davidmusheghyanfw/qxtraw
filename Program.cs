@@ -77,7 +77,7 @@ class Program
         });
 
         ledThread.Start();
-        var printerService = new PrinterService();
+        IPrinter printerService = new JCMPrinterImpl();
 
         var printerThread = new Thread(() =>
               {
@@ -98,7 +98,7 @@ class Program
 
     }
 
-    private static void InputLoop(DeviceManager manager, LEDController ledController, PrinterService printerService)
+    private static void InputLoop(DeviceManager manager, LEDController ledController, IPrinter printerService)
     {
         while (!exitRequested)
         {

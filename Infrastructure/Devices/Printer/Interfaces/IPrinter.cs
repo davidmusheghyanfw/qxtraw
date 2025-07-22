@@ -1,6 +1,7 @@
 public interface IPrinter
 {
     bool IsConnected { get; }
-    void Print();
+    void Init();
+    void Print(String data);
     void PrintDemoTicket();
 }

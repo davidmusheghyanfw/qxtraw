@@ -1,13 +1,14 @@
 using System.Text;
+using Microsoft.VisualBasic;
 
-class PrinterService
+abstract class PrinterServiceAdapter : IPrinter
 {
     #region Serial Port Configuration
-    int DEFAULT_BAUD_RATE => 38400;
-    int DEFAULT_READ_TIMEOUT => 1000;
-    int DEFAULT_WRITE_TIMEOUT => 1000;
-    int DEFAULT_DATA_BITS => 8;
-    int CONNECTION_DELAY_MS => 200;
+    protected abstract int DEFAULT_BAUD_RATE { get; }
+    protected abstract int DEFAULT_READ_TIMEOUT { get; }
+    protected abstract int DEFAULT_WRITE_TIMEOUT { get; }
+    protected abstract int DEFAULT_DATA_BITS { get; }
+    protected abstract int CONNECTION_DELAY_MS { get; }
     #endregion
 
     private PrinterConnectorService _printerConnector;
@@ -37,6 +38,13 @@ class PrinterService
         }
 
     }
+
+    public void Print(String data)
+    {
+        List<byte> dataBytes = Encoding.ASCII.GetBytes(data).ToList();
+        Print(dataBytes);
+    }
+
 
     public void PrintDemoTicket()
     {
@@ -81,6 +89,7 @@ class PrinterService
     {
         return Encoding.ASCII.GetBytes(MOCK_DATA).ToList();
     }
+
 
     private const string MOCK_DATA = $"^P|0|1|00-0000-0000-5366-8153|Your Establishment|Your Location|CITY / STATE / ZIP|||00-0000-0000-5366-8153|02/10/2012|00:02:21|Ticket # 12346|EIGHTY FIVE DOLLARS AND TWO CENTS|PR G|$85.02||30 days|MACHINE#1234-678|000000000053668153|^";
 }

@@ -71,9 +71,14 @@ class Program
 
 
         var ledController = new LEDController();
+
         var ledThread = new Thread(() =>
         {
             ledController.Init();
+            ledController.ApplyPattern(0, new SolidColorPattern(Color.Blue));
+            ledController.ApplyPattern(1, new HearthbeatPattern(Color.Red));
+            ledController.ApplyPattern(2, new LoopFadePattern());
+            ledController.ApplyPattern(3, new RainbowPattern());
         });
 
         ledThread.Start();
@@ -133,10 +138,10 @@ class Program
                     nFCReader.StopPolling();
                     return;
                 case "6":
-                    ledController.SetStaticColors();
+                    // ledController.SetStaticColors();
                     break;
                 case "7":
-                    ledController.SetLoopFade();
+                    ledController.ApplyPatterns();
                     break;
                 case "8":
                     ledController.DisposeController();

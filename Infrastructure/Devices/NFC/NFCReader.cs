@@ -37,6 +37,12 @@ class NFCReader
         OnStatusChanged += StatusChanged;
         OnException += MonitorException;
 
+        OnCardInserted += (sender, args) =>
+                {
+                    Console.WriteLine("NFCReader OnCardInserted() Sleeping thread for 1 second to allow card processing...");
+                    Thread.Sleep(1000);
+                };
+
         using (var monitor = MonitorFactory.Instance.Create(SCardScope.System))
         {
             AttachToAllEvents(monitor);
@@ -51,12 +57,11 @@ class NFCReader
                 if (monitor.Monitoring)
                 {
                     monitor.Cancel();
-                    Console.WriteLine("NFCReader Init() Monitoring paused. (Press CTRL-Q to quit)");
                 }
                 else
                 {
                     monitor.Start(readerNames);
-                    Console.WriteLine("NFCReader Init() Monitoring started. (Press CTRL-Q to quit)");
+                    Thread.Sleep(500);
                 }
             }
             Console.WriteLine("NFCReader StopPolling() Stopping polling...");

@@ -70,21 +70,6 @@ abstract class PrinterServiceAdapter : IPrinter
         }
     }
 
-    List<byte> CreatePrintBuffer(PrinterData printerData)
-    {
-        printerData = new PrinterData
-        {
-            barCode = "00-0000-0000-5366-8153",
-            establishment = "Your Establishment",
-            date = "printerData.date",
-            ticketNumber = printerData.ticketNumber,
-            amount = printerData.amount,
-            machineNumber = printerData.machineNumber,
-            validation = printerData.validation
-        };
-        return Encoding.ASCII.GetBytes(printerData.ToString()).ToList();
-    }
-
     List<byte> CreateDemoPrintBuffer()
     {
         return Encoding.ASCII.GetBytes(MOCK_DATA).ToList();

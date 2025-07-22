@@ -57,7 +57,7 @@ public class MEIDeviceAdapter : IDeviceAdapter
         MEICommand setPup = new MEICommand(MEIInstruction.SetPowerup, 2, 0);
         MEICommand setNote = new MEICommand(MEIInstruction.SetExtendedNoteReporting, 1, 0);
         MEICommand setCpn = new MEICommand(MEIInstruction.SetExtendedCouponReporting, 1, 0);
-        setDenom.InputBuffer[0] = 0x7f;
+        setDenom.InputBuffer[0] = 0x00;
         setInt.InputBuffer[0] = 0x00;
         // setSec.InputBuffer[0] = 0x00;
         setOri.InputBuffer[0] = 0x03;

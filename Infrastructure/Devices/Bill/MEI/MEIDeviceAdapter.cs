@@ -147,7 +147,8 @@ public class MEIDeviceAdapter : IDeviceAdapter
         try
         {
             Console.WriteLine("MEIDeviceAdapter initMEI()  setEscrow.RunOn(_device);");
-            setEscrow.RunOn(_device); //alternate way of calling a command
+            _device.Set(setEscrow);
+            // setEscrow.RunOn(_device); //alternate way of calling a command
         }
         catch (Exception exc)
         {
@@ -158,7 +159,8 @@ public class MEIDeviceAdapter : IDeviceAdapter
         try
         {
             Console.WriteLine("MEIDeviceAdapter initMEI()   setPush.RunOn(_device);");
-            setPush.RunOn(_device);
+            _device.Set(setPush);
+            // setPush.RunOn(_device);
         }
         catch (Exception exc)
         {
@@ -169,7 +171,8 @@ public class MEIDeviceAdapter : IDeviceAdapter
         try
         {
             Console.WriteLine("MEIDeviceAdapter initMEI()   setBar.RunOn(_device);");
-            setBar.RunOn(_device);
+            _device.Set(setBar);
+            // setBar.RunOn(_device);
         }
         catch (Exception exc)
         {
@@ -180,7 +183,8 @@ public class MEIDeviceAdapter : IDeviceAdapter
         try
         {
             Console.WriteLine("MEIDeviceAdapter initMEI()    setPup.RunOn(_device);");
-            setPup.RunOn(_device);
+            _device.Set(setPup);
+            // setPup.RunOn(_device);
         }
         catch (Exception exc)
         {
@@ -273,6 +277,12 @@ public class MEIDeviceAdapter : IDeviceAdapter
                 Console.WriteLine($"MEIDeviceAdapter Poll() ERROR {ex.Message}");
                 continue;
             }
+
+            if ((((MeiStatus)BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1)) & MeiStatus.Rejected) != 0)
+            {
+                Console.WriteLine("!IMPORTANT Bill rejected. Reason code: 0x{0:X2}", stdHostToAcc.OutputBuffer[4]);
+            }
+
             uint status = BitConverter.ToUInt32(stdHostToAcc.OutputBuffer, 1);
             Console.WriteLine($"Polling status: 0x{status:X8} ({(MeiStatus)status})");
 

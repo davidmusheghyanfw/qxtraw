@@ -43,7 +43,6 @@ class Program
         Console.WriteLine("  [3] Return bill");
         Console.WriteLine("  [4] Stack bill extension");
         Console.WriteLine("  [5] Exit");
-        Console.WriteLine("  [6] Set Solid Colors");
         Console.WriteLine("  [7] Animate Colors");
         Console.WriteLine("  [8] Dispose Led controller");
         Console.WriteLine("  [9] Print Demo Ticket");
@@ -130,16 +129,12 @@ class Program
                 case "4":
                     manager.StackBill();
                     break;
-
                 case "5":
                     Console.WriteLine("Exiting...");
                     exitRequested = true;
                     manager.StopPolling();
                     nFCReader.StopPolling();
                     return;
-                case "6":
-                    // ledController.SetStaticColors();
-                    break;
                 case "7":
                     ledController.ApplyPatterns();
                     break;

@@ -134,126 +134,96 @@ class JCMDeviceAdapter : IDeviceAdapter
 
     public void Poll()
     {
-        int retries = 0;
-        Stopwatch sw = null;
-        JCMCommand getStatus = new JCMCommand(JCMInstruction.GetStatus, 0, 128);
-        JCMCommand stack1 = new JCMCommand(JCMInstruction.Stack1, 0, 0);
-        JCMCommand ack = new JCMCommand(JCMInstruction.Ack, 0, 0);
-        JCMCommand setInihibit = new JCMCommand(JCMInstruction.SetInhibit, 1, 0);
-        Console.Write("JCMDeviceAdapter Poll() Please insert bill...\n");
-        byte statusCode;
-        JCMStatusResponse status;
+        const int AcceptTimeout = 50;
+        const int EscrowTimeout = 10;
+        const int VendValidTimeout = 10;
+        Stopwatch sw;
+        Console.WriteLine("JCMDeviceAdapter Poll() Please insert bill...");
+
+        var getStatus = new JCMCommand(JCMInstruction.GetStatus, 0, 128);
+        var stack1 = new JCMCommand(JCMInstruction.Stack1, 0, 0);
+        var ack = new JCMCommand(JCMInstruction.Ack, 0, 0);
+        var setInhibit = new JCMCommand(JCMInstruction.SetInhibit, 1, 0);
+        setInhibit.InputBuffer[0] = 0xFF; // Enable all channels
+
         while (IsPolling)
         {
             try
             {
                 sw = Stopwatch.StartNew();
-                Console.WriteLine("JCMDeviceAdapter Poll() Starting polling..................................");
-                do
+                Console.WriteLine("JCMDeviceAdapter Poll() Polling started...");
+
+                if (!WaitForStatus(getStatus, out var status, AcceptTimeout, JCMStatusResponse.Accepting, JCMStatusResponse.Escrow))
                 {
-                    _device.Get(getStatus);
-                    retries++;
-                    statusCode = getStatus.OutputBuffer[0];
-                    status = (JCMStatusResponse)statusCode;
                     if (status == JCMStatusResponse.Disabled)
                     {
-                        Console.WriteLine("JCMDeviceAdapter Poll() Enable Device SetInhibit command...\n");
-                        _device.Set(setInihibit);
-                        if (_device.LastErrorCode != RAVResult.Q_SUCCESS)
-                            Console.WriteLine("JCMDeviceAdapter Poll() Error in SetInhibit command. Received error code: {0}\n",
-                                _device.LastErrorCode);
-                        Thread.Sleep(_threadSleepTime);
-                    }
-                    else if (status != JCMStatusResponse.Accepting && status != JCMStatusResponse.Escrow)
-                    {
-                        Thread.Sleep(_threadSleepTime);
+                        Console.WriteLine("Device disabled. Sending SetInhibit...");
+                        _device.Set(setInhibit);
                     }
 
-                    Console.WriteLine($"JCMDeviceAdapter Poll() Waiting for Accept Status: {status} (0x{statusCode:X2})");
-
-                } while (status != JCMStatusResponse.Accepting && status != JCMStatusResponse.Escrow && retries < 100);
-
-                if (status != JCMStatusResponse.Accepting && status != JCMStatusResponse.Escrow)
-                {
-                    Console.WriteLine("JCMDeviceAdapter Poll() Timed out or error occurred. Exiting test.");
-                    return;
-                }
-
-                Console.WriteLine("JCMDeviceAdapter Poll() Accepting... Waiting for bill to be Escrewed. _________________");
-
-                retries = 0;
-
-                do
-                {
-                    _device.Get(getStatus);
-                    statusCode = getStatus.OutputBuffer[0];
-                    status = (JCMStatusResponse)statusCode;
-                    retries++;
-
-                    if (status != JCMStatusResponse.Escrow)
-                    {
-                        Thread.Sleep(_threadSleepTime);
-                    }
-                    Console.Write($"JCMDeviceAdapter Poll() Waiting for Escrew Status: {status} (0x{statusCode:X2}) ");
-                } while (status != JCMStatusResponse.Escrow && retries < 10);
-
-                if (status != JCMStatusResponse.Escrow)
-                {
-                    Console.WriteLine("JCMDeviceAdapter Poll() Timed out or error occurred. When Waiting gor Escrew Exiting test");
-                    return;
-                }
-
-                Console.WriteLine("JCMDeviceAdapter Poll() Escrowed");
-
-                Console.WriteLine("JCMDeviceAdapter Poll() Sending Stack-1");
-                _device.Execute(stack1);
-                retries = 0;
-                do
-                {
-                    _device.Get(getStatus);
-                    statusCode = getStatus.OutputBuffer[0];
-                    status = (JCMStatusResponse)statusCode;
-                    retries++;
-
-                    if (status == JCMStatusResponse.Stacking)
-                    {
-                        if (retries == 1)
-                            Console.WriteLine("JCMDeviceAdapter Poll() Stacking...\nWaiting for status 0x15 (VEND VALID)\nCurrent status: ");
-                        Thread.Sleep(_threadSleepTime);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"JCMDeviceAdapter Poll()  Waiting for VendValid Status: {status} (0x{statusCode:X2}) ");
-                        // Thread.Sleep(_threadSleepTime);
-                    }
-
-                } while (status != JCMStatusResponse.VendValid && retries < 10);
-
-                if (status != JCMStatusResponse.VendValid)
-                {
-                    Console.WriteLine("JCMDeviceAdapter Poll() Timed out or error occurred. Exiting test.");
+                    Console.WriteLine("Timed out waiting for Accepting/Escrow. Skipping.");
                     continue;
                 }
 
-                Console.WriteLine($"JCMDeviceAdapter Poll() Vend valid {DateTime.Now:HH:mm:ss.fff} - Sending Acknowledge");
+                Console.WriteLine($"Status reached: {status}");
 
+                if (status != JCMStatusResponse.Escrow)
+                {
+                    Console.WriteLine("Waiting for Escrow...");
+                    if (!WaitForStatus(getStatus, out status, EscrowTimeout, JCMStatusResponse.Escrow))
+                    {
+                        Console.WriteLine("Timed out waiting for Escrow.");
+                        continue;
+                    }
+                }
+
+                Console.WriteLine("Escrowed — sending Stack1...");
+                _device.Execute(stack1);
+
+                if (!WaitForStatus(getStatus, out status, VendValidTimeout, JCMStatusResponse.VendValid))
+                {
+                    Console.WriteLine("Timed out waiting for VendValid.");
+                    continue;
+                }
+
+                Console.WriteLine($"VendValid received at {DateTime.Now:HH:mm:ss.fff} — sending ACK.");
                 _device.Execute(ack);
-
-                Console.WriteLine($"JCMDeviceAdapter Poll() Acknowledge sent {DateTime.Now:HH:mm:ss.fff} Ack Sent");
-
-                Console.Write("JCMDeviceAdapter Poll() Test executed successfully\n");
+                Console.WriteLine($"ACK sent at {DateTime.Now:HH:mm:ss.fff}");
 
                 sw.Stop();
-
+                Console.WriteLine("JCMDeviceAdapter Poll() Bill stacked successfully.");
                 printTime(sw.ElapsedTicks, 1);
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("JCMDeviceAdapter Poll() Test failed somewhere: " + exc.Message);
+                Console.WriteLine($"JCMDeviceAdapter Poll() Exception: {ex.Message}");
             }
         }
-        Console.WriteLine("JCMDeviceAdapter Poll() Ended");
+
+        Console.WriteLine("JCMDeviceAdapter Poll() Polling ended.");
     }
+
+    private bool WaitForStatus(JCMCommand getStatus, out JCMStatusResponse finalStatus, int maxRetries, params JCMStatusResponse[] expectedStatuses)
+    {
+        finalStatus = JCMStatusResponse.Failure;
+
+        for (int retries = 0; retries < maxRetries && IsPolling; retries++)
+        {
+            _device.Get(getStatus);
+            byte code = getStatus.OutputBuffer[0];
+            finalStatus = (JCMStatusResponse)code;
+
+            Console.WriteLine($"Polling: {finalStatus} (0x{code:X2})");
+
+            if (expectedStatuses.Contains(finalStatus))
+                return true;
+
+            Thread.Sleep(_threadSleepTime);
+        }
+
+        return false;
+    }
+
 
     public void ReturnBill()
     {

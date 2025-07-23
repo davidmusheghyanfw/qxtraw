@@ -214,7 +214,12 @@ class JCMDeviceAdapter : IDeviceAdapter
             finalStatus = (JCMStatusResponse)code;
 
             Console.WriteLine($"Polling: {finalStatus} (0x{code:X2})");
-
+            if (finalStatus == JCMStatusResponse.Escrow)
+            {
+                byte[] buffer = getStatus.OutputBuffer;
+                byte channelIndex = (byte)((buffer[3] & 0x38) >> 3); // This is usually the bill channel
+                Console.WriteLine($"Escrowed — Channel: {channelIndex},");
+            }
             if (expectedStatuses.Contains(finalStatus))
                 return true;
 

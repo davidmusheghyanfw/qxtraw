@@ -219,6 +219,8 @@ class JCMDeviceAdapter : IDeviceAdapter
                 byte[] buffer = getStatus.OutputBuffer;
                 byte channelIndex = (byte)((buffer[3] & 0x38) >> 3); // This is usually the bill channel
                 Console.WriteLine($"Escrowed — Channel: {channelIndex},");
+                Console.WriteLine("Escrow buffer: " + BitConverter.ToString(getStatus.OutputBuffer));
+
             }
             if (expectedStatuses.Contains(finalStatus))
                 return true;

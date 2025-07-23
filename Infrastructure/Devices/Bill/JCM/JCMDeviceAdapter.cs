@@ -12,6 +12,7 @@ class JCMDeviceAdapter : IDeviceAdapter
     private SerialPortIndex _port;
     public SerialPortIndex port { get => _port; set => _port = value; }
 
+    private int _threadSleepTime = 200;
     public JCMDeviceAdapter(SerialPortIndex port)
     {
         _device = new RAVDevice(port, ProtocolIdentifier.JCM);
@@ -159,11 +160,11 @@ class JCMDeviceAdapter : IDeviceAdapter
                         if (_device.LastErrorCode != RAVResult.Q_SUCCESS)
                             Console.WriteLine("JCMDeviceAdapter Poll() Error in SetInhibit command. Received error code: {0}\n",
                                 _device.LastErrorCode);
-                        Thread.Sleep(500);
+                        Thread.Sleep(_threadSleepTime);
                     }
                     else if (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.Accepting)
                     {
-                        Thread.Sleep(500);
+                        Thread.Sleep(_threadSleepTime);
                     }
                     byte statusCode = getStatus.OutputBuffer[0];
                     JCMStatusResponse status = (JCMStatusResponse)statusCode;
@@ -188,7 +189,7 @@ class JCMDeviceAdapter : IDeviceAdapter
 
                     if (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.Escrow)
                     {
-                        Thread.Sleep(500);
+                        Thread.Sleep(_threadSleepTime);
                     }
                     byte statusCode = getStatus.OutputBuffer[0];
                     JCMStatusResponse status = (JCMStatusResponse)statusCode;
@@ -215,14 +216,14 @@ class JCMDeviceAdapter : IDeviceAdapter
                     {
                         if (retries == 1)
                             Console.WriteLine("JCMDeviceAdapter Poll() Stacking...\nWaiting for status 0x15 (VEND VALID)\nCurrent status: ");
-                        Thread.Sleep(500);
+                        Thread.Sleep(_threadSleepTime);
                     }
                     else
                     {
                         byte statusCode = getStatus.OutputBuffer[0];
                         JCMStatusResponse status = (JCMStatusResponse)statusCode;
                         Console.WriteLine($"JCMDeviceAdapter Poll()  Waiting for VendValid Status: {status} (0x{statusCode:X2}) ");
-                        Thread.Sleep(500);
+                        Thread.Sleep(_threadSleepTime);
                     }
 
                 } while (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.VendValid && retries < 10);
@@ -237,7 +238,7 @@ class JCMDeviceAdapter : IDeviceAdapter
 
                 // Send acknowledge
                 _device.Execute(ack);
-                Thread.Sleep(500);
+                Thread.Sleep(_threadSleepTime);
 
                 Console.WriteLine("JCMDeviceAdapter Poll() Acknowledge sent");
 
@@ -253,7 +254,7 @@ class JCMDeviceAdapter : IDeviceAdapter
                         if (retries == 1)
                             Console.WriteLine("JCMDeviceAdapter Poll() Stacked\nWaiting for idling...\n");
 
-                        Thread.Sleep(500);
+                        Thread.Sleep(_threadSleepTime);
                     }
                     else if (getStatus.OutputBuffer[0] == (byte)JCMStatusResponse.VendValid)
                     {
@@ -267,7 +268,7 @@ class JCMDeviceAdapter : IDeviceAdapter
                         byte statusCode = getStatus.OutputBuffer[0];
                         JCMStatusResponse status = (JCMStatusResponse)statusCode;
                         Console.Write($"JCMDeviceAdapter Poll() JCMStatusResponse.Enable Waiting for idling status. Current status {status} (0x{statusCode:X2})\n");
-                        Thread.Sleep(500);
+                        Thread.Sleep(_threadSleepTime);
                     }
 
                 } while (getStatus.OutputBuffer[0] != (byte)JCMStatusResponse.Enable && retries < 10);

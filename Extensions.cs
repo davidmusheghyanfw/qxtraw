@@ -34,6 +34,25 @@ public static class Extensions
         printTime(sw.ElapsedTicks, 1);
     }
 
+    public static string fromHexToASCII(this byte[] buffer)
+    {
+        int startIndex = 2, maxLength = 20;
+        if (buffer == null || buffer.Length <= startIndex)
+            return string.Empty;
+
+        var barcodeChars = new List<char>(maxLength);
+
+        for (int i = startIndex; i < buffer.Length && i < startIndex + maxLength; i++)
+        {
+            byte b = buffer[i];
+            if (b == 0x00) break; // null-terminated
+            if (b >= 0x20 && b <= 0x7E) // printable ASCII
+                barcodeChars.Add((char)b);
+        }
+
+        return new string(barcodeChars.ToArray());
+    }
+
     private static MEIInstruction ToMEIInstruction(MenuOption option)
     {
         byte val = (byte)((int)option - 4000);

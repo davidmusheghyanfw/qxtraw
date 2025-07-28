@@ -30,7 +30,7 @@ class Program
 {
     private static bool exitRequested = false;
 
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
          var server = new TcpServer(5000);
 
@@ -63,18 +63,10 @@ class Program
         var nfcReader = new NFCReader();
         var nfcThread = new Thread(() =>
         {
-            nfcReader.Init();
+            nfcReader.Init(server);
         });
 
         nfcThread.Start();
-
-        nfcReader.OnCardInserted += async (sender, args) =>
-        {
-            
-            Console.WriteLine($"[NFC] Tag Detected: {args}");
-            await server.SendMessageAsync($"NFC:{args}");
-            Thread.Sleep(1000);
-        };
 
         server.OnMessageReceived += HandleUnityCommand;
 
@@ -84,10 +76,6 @@ class Program
         var ledThread = new Thread(() =>
         {
             ledController.Init();
-            ledController.ApplyPattern(0, new SolidColorPattern(Color.Blue));
-            ledController.ApplyPattern(1, new HearthbeatPattern(Color.Red));
-            ledController.ApplyPattern(2, new LoopFadePattern());
-            ledController.ApplyPattern(3, new RainbowPattern());
         });
 
         ledThread.Start();
@@ -106,7 +94,7 @@ class Program
         Console.WriteLine("✅ Server started. Waiting for Unity client...");
 
         // Wait for Unity connection
-        // await server.WaitForClientAsync();
+        await server.WaitForClientAsync();
 
         Console.WriteLine("🎮 Unity client connected!");
 

@@ -19,8 +19,12 @@ class NFCReader
     private bool IsEmpty(ICollection<string> readerNames) => readerNames == null || readerNames.Count < 1;
 
     private bool _pooling = true;
-    public void Init()
+
+    private TcpServer _server;
+    public void Init(TcpServer server)
     {
+        _server = server;
+
         Console.WriteLine("NFCReader Init()");
 
         var readerNames = GetReaderNames();
@@ -37,12 +41,14 @@ class NFCReader
         // OnStatusChanged += StatusChanged;
         OnException += MonitorException;
 
-        OnCardInserted += (sender, args) =>
-                {
-                    // Console.WriteLine("NFCReader OnCardInserted() Sleeping thread for 1 second to allow card processing...");
-                    // Thread.Sleep(1000);
-                };
-
+        OnCardInserted += async (sender, args) =>
+        {
+            Console.WriteLine($"[NFC] Card Inserted: {args.ReaderName}");
+            string atrString = BitConverter.ToString(args.Atr ?? new byte[0]);
+            Console.WriteLine($"[NFC]: {atrString}");
+            await _server.SendMessageAsync($"NFC:{atrString}"); // Send the ATR
+            Thread.Sleep(1000); // Allow time for processing if needed
+        };
         using (var monitor = MonitorFactory.Instance.Create(SCardScope.System))
         {
             AttachToAllEvents(monitor);

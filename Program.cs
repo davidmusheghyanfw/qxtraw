@@ -30,9 +30,9 @@ class Program
 {
     private static bool exitRequested = false;
 
-    static async Task Main(string[] args)
+    static void Main(string[] args)
     {
-        // var server = new TcpServer(5000);
+         var server = new TcpServer(5000);
 
         Console.WriteLine("Starting device...");
         Console.WriteLine("\nDeviceManager Interactive Console");
@@ -68,6 +68,15 @@ class Program
 
         nfcThread.Start();
 
+        nfcReader.OnCardInserted += async (sender, args) =>
+        {
+            Console.WriteLine($"[NFC] Tag Detected: {args}");
+            await server.SendMessageAsync($"NFC:{args}");
+            Thread.Sleep(1000);
+        };
+
+        server.OnMessageReceived += HandleUnityCommand;
+
 
         var ledController = new LEDController();
 
@@ -100,6 +109,20 @@ class Program
 
         Console.WriteLine("🎮 Unity client connected!");
 
+    }
+
+       private static void HandleUnityCommand(object? sender, string command)
+    {
+        Console.WriteLine($"[COMMAND FROM Client] Processing: {command}");
+        string[] parts = command.Split(':');
+        string commandType = parts[0].ToUpper();
+
+        switch (commandType)
+        {
+            // ... (existing LED_ON, LED_OFF, LED_PATTERN, BILL_RETURN commands) ...
+
+    
+        }
     }
 
     private static void InputLoop(DeviceManager manager, LEDController ledController, IPrinter printerService, NFCReader nFCReader)

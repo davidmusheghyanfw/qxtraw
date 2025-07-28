@@ -39,8 +39,8 @@ class NFCReader
 
         OnCardInserted += (sender, args) =>
                 {
-                    Console.WriteLine("NFCReader OnCardInserted() Sleeping thread for 1 second to allow card processing...");
-                    Thread.Sleep(1000);
+                    // Console.WriteLine("NFCReader OnCardInserted() Sleeping thread for 1 second to allow card processing...");
+                    // Thread.Sleep(1000);
                 };
 
         using (var monitor = MonitorFactory.Instance.Create(SCardScope.System))

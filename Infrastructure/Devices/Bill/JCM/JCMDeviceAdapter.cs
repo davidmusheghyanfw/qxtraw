@@ -177,7 +177,7 @@ class JCMDeviceAdapter : IDeviceAdapter
                         continue;
                     }
                 }
-
+                Thread.Sleep(1000);
                 Console.WriteLine("Escrowed — sending Stack1...");
                 _device.Execute(stack1);
 
@@ -352,11 +352,11 @@ class JCMDeviceAdapter : IDeviceAdapter
             if (finalStatus == JCMStatusResponse.Escrow)
             {
                 byte[] buffer = getStatus.OutputBuffer;
-                byte channelIndex = (byte)((buffer[3] & 0x38) >> 3); // This is usually the bill channel
+                byte denomination = (byte)((buffer[3] & 0x38) >> 3);// Bits 3-5 represent the denomination
 
                 string barcode = buffer.fromHexToASCII();
                 Console.WriteLine($"📦 Barcode: {barcode}");
-                Console.WriteLine($"Escrowed — Channel: {channelIndex},");
+                Console.WriteLine($"Denomination: {denomination},");
                 Console.WriteLine("Escrow buffer: " + BitConverter.ToString(getStatus.OutputBuffer));
 
             }

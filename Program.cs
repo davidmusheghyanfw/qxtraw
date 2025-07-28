@@ -70,7 +70,6 @@ class Program
 
         nfcReader.OnCardInserted += async (sender, args) =>
         {
-            
             Console.WriteLine($"[NFC] Tag Detected: {args}");
             await server.SendMessageAsync($"NFC:{args}");
             Thread.Sleep(1000);
